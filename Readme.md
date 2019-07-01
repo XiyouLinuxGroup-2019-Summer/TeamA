@@ -1,4 +1,4 @@
-#### 目录说明
+### 目录说明
 目录名称| 说明 
 ------|------
 |linuxC_Code|LinuxC实战编程代码|
@@ -9,7 +9,7 @@
 |project|周内小项目代码|
 |test|每个人提交周内测试结果|
 
-#### 组员信息
+### 组员信息
 | 组员| GitHub |CSDN|
 |:--------:| -------------:|--------:|
 |畅柯|[GitHub](https://github.com/Request2609)|[CSDN](https://blog.csdn.net/qq_41681241)|
@@ -20,7 +20,7 @@
 |赵焜琨|[GitHub](https://github.com/zichua)|[CSDN](https://blog.csdn.net/qq_44234943)|
 
 
-#### 要求
+### 要求
 
 <p>（１）假期周内每天往Github提交日常代码。</p>
 <p>（２）每周一开小会，演示周内做的小项目。以及聊上周的学习情况并了解即将学习的内容！</p>
