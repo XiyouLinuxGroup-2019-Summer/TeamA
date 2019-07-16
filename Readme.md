@@ -20,7 +20,7 @@
 | 组员| GitHub |CSDN|
 |:--------:| -------------:|--------:|
 |畅柯|[GitHub](https://github.com/Request2609)|[CSDN](https://blog.csdn.net/qq_41681241)|
-|李重乐|[GitHub](https://github.come/lalahaha323)|[CSDN](https://blog.csdn.net/lalala323)|
+|李重乐|[GitHub](https://github.com/lalahaha323)|[CSDN](https://blog.csdn.net/lalala323)|
 |张小翔|[GitHub](https://github.com/PhoenixXC)|[博客](https://phoenixxc.github.io/)|
 |李宇鹏|[GitHub](https://github.com/LYP-617)|[CSDN](https://me.csdn.net/qq_43646576)|
 |权诗佳|[GitHub](https://github.com/tiger-sniffsroses)|[CSDN](https://me.csdn.net/qq_43575154)|
