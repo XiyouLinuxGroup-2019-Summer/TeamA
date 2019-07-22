@@ -7,6 +7,39 @@ using namespace std;
 
 int main()
 {
+    ll n,m;
+    while(cin >> n)
+    {
+        if(n < 1 || n > 2*100000)
+            exit(1);
+
+        vector<ll> a;
+        for(int i = 0; i < n; i++)
+        {
+            cin >> m;
+            a.push_back(m);
+        }
+        sort(a.begin(),a.end());
+        
+        int sum = 0;
+        for(int i = 0,auto it = a.begin(); i < n,it != a.end(); i++,it++)
+        {
+            if(*it >= i)
+                sum++;
+        }
+        cout << sum << endl;
+    }
+    return 0;
+}
+
+
+
+
+
+/*
+//B
+int main()
+{
     ll t;
     cin >> t;
     while(t--)
@@ -30,4 +63,4 @@ int main()
     }
     return 0;
 }
-
+*/
