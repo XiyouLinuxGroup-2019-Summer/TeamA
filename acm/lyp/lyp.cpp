@@ -3,11 +3,11 @@
 #include<string>
 #include<cstdio>
 #include<cstdlib>
+#include<cstring>
 
 #define ll long long 
 
 using namespace std;
-
 
 int main()
 {
@@ -17,8 +17,48 @@ int main()
 
 
 
+/*
+//F
+char a[19][10] = {"pop","no","zip","zotz","tzec","xul","yoxkin","mol","chen","yax","zac","ceh","mac","kankin","muan","pax","koyab","cumhu"};
+char b[20][10] = {"imix","ik","akbal","kan","chicchan","cimi","manik","lamat","muluk","ok","chuen","eb","ben","ix","mem","cib","caban","eznab","canac","ahau"};
 
+int main()
+{
+    int n;
+    cin >> n;
+    cout << n << endl;
+    while(n--)
+    {
+        int q,p;
+        char s;
+        char ss[10];
+        int sum = 0;
+        scanf("%d%c %s %d",&q,&s,ss,&p);
 
+        sum = p * 365;
+        for(int i = 0; i < 19; i++)
+        {
+            if(strcmp(ss,a[i]) == 0)
+            {
+                sum += i * 20;
+                break;
+            }
+        }
+        sum += q;
+
+        p = sum / 260;
+        q = sum % 260;
+        
+        int m = q % 20;
+        
+        int x = q % 13 + 1;
+
+        printf("%d %s %d",x,b[m],p);
+        cout << endl;
+    }
+    return 0;
+}
+*/
 
 
 
