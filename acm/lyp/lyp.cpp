@@ -19,6 +19,30 @@ int main()
 
 
 
+
+
+
+/*
+//E
+//巴什博弈
+int main()
+{
+    int c,n,m;
+    cin >> c;
+    while(c--)
+    {
+        cin >> n >> m;
+        if(n % (m + 1) == 0)
+            cout << "second" << endl;
+        else 
+            cout << "first" << endl;
+    }
+    return 0;
+}
+*/
+
+
+
 /*
 //D
 //刚开始输入的格式一直有问题...
