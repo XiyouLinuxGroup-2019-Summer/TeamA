@@ -5,7 +5,7 @@
 
 int main()
 {
-    pid_t pid;
+    pid_t pid;   //pid_t就是int型
     
     printf("Process Creation Study\n");
     pid = fork();
