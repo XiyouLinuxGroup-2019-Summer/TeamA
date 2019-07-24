@@ -1,5 +1,5 @@
 #include<iostream>
-//#include<bits/stdc++.h>
+#include<bits/stdc++.h>
 #include<string>
 #include<cstdio>
 #include<cstdlib>
@@ -11,9 +11,61 @@ using namespace std;
 
 int main()
 {
-
+    
     return 0;
 }
+
+
+
+
+
+/*
+//G
+//判断是否满足条件
+ll func(ll v, ll n, ll k)
+{
+    ll sum = v;
+    while(v)
+    {
+        sum += v / k;
+        v /= k;
+    }
+    if(sum >= n)
+        return 1;
+    
+    return 0;
+}
+
+//二分搜索
+ll binary_search(int a, ll n, ll k)
+{
+    ll mid;
+    ll c = n;
+    while(a <= c)
+    {
+        mid = a + (c - a) / 2;  
+        printf("%lld\n",mid);
+        if(func(mid,n,k) == 1)
+        {
+            c  = mid - 1;
+        }
+        else 
+            a = mid + 1;
+    }
+    return a;
+}
+
+int main()
+{
+    ll n,k;
+    while(scanf("%lld %lld",&n,&k) != EOF)
+    {
+        ll v = binary_search(1,n,k);
+        cout << v << endl;
+    }
+    return 0;
+}
+*/
 
 
 
