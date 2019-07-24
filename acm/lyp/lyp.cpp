@@ -1,17 +1,17 @@
 #include<iostream>
-//#include<bits/stdc++.h>
+#include<bits/stdc++.h>
 #include<string>
 #include<cstdio>
 #include<cstdlib>
+#include<cstring>
 
 #define ll long long 
 
 using namespace std;
 
-
 int main()
 {
-
+    
     return 0;
 }
 
@@ -19,6 +19,98 @@ int main()
 
 
 
+/*
+//G
+//判断是否满足条件
+ll func(ll v, ll n, ll k)
+{
+    ll sum = v;
+    while(v)
+    {
+        sum += v / k;
+        v /= k;
+    }
+    if(sum >= n)
+        return 1;
+    
+    return 0;
+}
+
+//二分搜索
+ll binary_search(int a, ll n, ll k)
+{
+    ll mid;
+    ll c = n;
+    while(a <= c)
+    {
+        mid = a + (c - a) / 2;  
+        printf("%lld\n",mid);
+        if(func(mid,n,k) == 1)
+        {
+            c  = mid - 1;
+        }
+        else 
+            a = mid + 1;
+    }
+    return a;
+}
+
+int main()
+{
+    ll n,k;
+    while(scanf("%lld %lld",&n,&k) != EOF)
+    {
+        ll v = binary_search(1,n,k);
+        cout << v << endl;
+    }
+    return 0;
+}
+*/
+
+
+
+/*
+//F
+char a[19][10] = {"pop","no","zip","zotz","tzec","xul","yoxkin","mol","chen","yax","zac","ceh","mac","kankin","muan","pax","koyab","cumhu"};
+char b[20][10] = {"imix","ik","akbal","kan","chicchan","cimi","manik","lamat","muluk","ok","chuen","eb","ben","ix","mem","cib","caban","eznab","canac","ahau"};
+
+int main()
+{
+    int n;
+    cin >> n;
+    cout << n << endl;
+    while(n--)
+    {
+        int q,p;
+        char s;
+        char ss[10];
+        int sum = 0;
+        scanf("%d%c %s %d",&q,&s,ss,&p);
+
+        sum = p * 365;
+        for(int i = 0; i < 19; i++)
+        {
+            if(strcmp(ss,a[i]) == 0)
+            {
+                sum += i * 20;
+                break;
+            }
+        }
+        sum += q;
+
+        p = sum / 260;
+        q = sum % 260;
+        
+        int m = q % 20;
+        
+        int x = q % 13 + 1;
+
+        printf("%d %s %d",x,b[m],p);
+        cout << endl;
+    }
+    return 0;
+}
+*/
 
 
 
