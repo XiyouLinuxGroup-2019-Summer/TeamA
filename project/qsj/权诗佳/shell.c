@@ -7,6 +7,10 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <signal.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+#include <pwd.h>
 
 
 #define normal          0  
@@ -15,32 +19,52 @@
 #define have_pipe       3  
 #define out_redirec     4
 
-void print_promt();
-void do_cmd(int, char a[][]);
-int find_command(char *);           
-void explain_input(char *, int *, char a[][]);
-void get_input(char *);
+void do_cmd(int argcout, char arglist[100][256]);
+int find_command(char *command);           
+void explain_input(char *buf, int *argcout, char arglist[100][256]);
+void get_input(char *buf);
 
+char oldpwd[300];
 
 int main(int argc, char **argv)
 {
 
-	int i;
+    struct passwd *name;
+    signal(SIGINT, SIG_IGN);
+	int i, len;
     int argcout = 0;        
-	char arglist[100][256]; 
-	char *buf  = NULL;      
+	char arglist[100][256], temp[256], pwd[100]; 
+	char *buf  = NULL, *s = NULL;      
 
-	buf = (char *)malloc(256);   	
-	if( buf == NULL ){
+	buf=(char *)malloc(sizeof(char)*256);
+    if( buf == NULL ){
 		perror("malloc failed");
 		exit(-1);
 	}
+    getcwd(oldpwd, sizeof(oldpwd));
 	
 	while(1){
+        name = getpwuid(getuid());
+        getcwd(pwd, sizeof(pwd) - 1);
+        sprintf(temp, "[%s @myshell:\033[34m%s\033[0m]$ ", name->pw_name, pwd);
 		memset(buf,0,256);             
-		print_promt();  
-        get_input(buf);	
-		if( strcmp(buf,"exit\n") == 0 || strcmp(buf,"logout\n") == 0 )
+        s = readline(temp);
+        add_history(s);
+        write_history(NULL);
+
+        strcpy(buf, s);
+        
+        if ( strcmp(buf, "cd") == 0 || strcmp (buf, "cd ") == 0 ) {
+            strcat(buf, " ~");
+        }
+
+        len = strlen(buf);
+        len++;
+        buf[len++] = '\n';
+        buf[len] = '\0';
+    
+       
+        if( strcmp(buf,"exit") == 0 || strcmp(buf,"logout") == 0 )
 			break;
 		
 		for( i = 0; i < 100; i++ ) {
@@ -60,33 +84,6 @@ int main(int argc, char **argv)
     exit(0);
 }
 
-void print_promt()
-{
-    printf("myshell$$ ");
-}
-
-void get_input(char *buf)
-{
-
-    int len = 0;
-    int ch;
-
-    ch = getchar();
-    while ( len < 256 && ch != '\n' ) {
-        buf[len++] = ch;
-        ch = getchar();
-    }
-
-    if ( len == 256 ) {
-        printf("command is too long\n");
-        exit(-1);
-    }
-    
-    buf[len] = '\n';
-    len++;
-    buf[len] = '\0';
-
-}
 
 void explain_input(char *buf,int *argcout,char arglist[100][256])
 {
@@ -126,32 +123,43 @@ void do_cmd(int argcout,char arglist[100][256])
 	char *argnext[argcout+1];
 	char *file;
 	pid_t pid;
-	
 
 	for( i = 0; i < argcout; i++ ) 
 		arg[i]=(char *)arglist[i];    
 
 	arg[argcout] = NULL;	
 
-	for( i = 0; i < argcout; i++ ) {
-		if( strncmp(arg[i],"&",1) == 0 ) {
-			if( i == argcout-1 ) {
-				backgroud = 1;
-				arg[argcout - 1] =NULL;
-				break;
-			}
-			else {
-				printf("wrong command\n");
-				return ;
-			}
-		}
-	}
+    for( i = 0; i < argcout; i++ ) {
+        if( strncmp(arg[i],"&",1) == 0 ) {
+            if( i == argcout-1 ) {
+                backgroud = 1;
+                arg[argcout - 1] =NULL;
+                break;
+            }
+            else {
+                printf("wrong command\n");
+                return ;
+            }
+        }
 
-	
-	for( i = 0; arg[i] != NULL; i++ ) {
+        if ( strcmp(arg[i],"cd") == 0 ) {
+            if (  !strcmp(arg[i+1], "~" ) ) {
+                strcpy(arg[i+1], "/home/crista");
+            }
+
+            if ( strcmp(arg[i+1], "-") == 0 ) {
+                strcpy(arg[i+1], oldpwd);
+            }
+            getcwd(oldpwd, sizeof(oldpwd));
+            chdir(arg[i+1]);
+            return ;
+        }
+    }
+
+    for( i = 0; arg[i] != NULL; i++ ) {
         if( strcmp(arg[i],">") == 0 ) {
-			flag++;
-			how = out_redirect;
+            flag++;
+            how = out_redirect;
 			if (arg[i+1] == NULL)
 				flag++;
 		}
@@ -278,40 +286,53 @@ void do_cmd(int argcout,char arglist[100][256])
 			}
 			else if(pid2 == 0){
 				if(!(find_command)(arg[0])){
-					printf("%s :command not found !\n",arg[0]);
-					exit(0);
-				}
-                
-                
+                    printf("%s :command not found !\n",arg[0]);
+                    exit(0);
+                }
+
+
                 fd2 = open("/tmp/youdonotknowfile",O_WRONLY | O_CREAT | O_TRUNC ,0644);
-				dup2(fd2,1);
+                dup2(fd2,1);
                 execvp(arg[0],arg);
                 exit(0);
-			}
+            }
 
-			
+
             if(waitpid(pid2,&status2,0) == -1){
-				printf("wait for child process error\n");
-			}
+                printf("wait for child process error\n");
+            }
 
             if(!(find_command)(argnext[0])){
-					printf("%s :command not found !\n",argnext[0]);
-					exit(0);
-			}
-           
+                printf("%s :command not found !\n",argnext[0]);
+                exit(0);
+            }
+
             fd2 = open("/tmp/youdonotknowfile",O_RDONLY);
-			dup2(fd2,0);
-			execvp(argnext[0],argnext);
+            dup2(fd2,0);
+            execvp(argnext[0],argnext);
 
-			if( remove("/tmp/youdonotknowfile") )
-				printf("remove error\n");
-			exit(0);
+            if( remove("/tmp/youdonotknowfile") )
+                printf("remove error\n");
+            exit(0);
 
-		}
-		break;
-	default :
-		break;
-	}
+        }
+        break;
+    case 4:
+        if(pid == 0){
+            if( !(find_command(arg[0])) ){
+                printf("%s :command not found !\n",arg[0]);
+                exit(0);
+            }
+            fd = open(file,O_RDWR | O_CREAT | O_APPEND,0644);
+            dup2(fd,1);
+
+            execvp(arg[0],arg);
+            exit(0);
+        }
+        break;
+    default :
+        break;
+    }
 	
     if( backgroud ==1 ) {
         printf("[process id %d]\n",pid);
@@ -349,7 +370,6 @@ int find_command(char *command)
 		}
 		closedir(dp);   
 		i++;
-	}
+	}   
 	return 0;
 }
-
