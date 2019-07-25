@@ -432,7 +432,7 @@ void do_cmd(int argcount, char arglist[][256], int historycount, char history[][
                 printf("%s: command not dound\n",arg[0]);
                 exit(0);
             }
-            fd = open(file,O_RDWR|O_CREAT|O_APPEND);
+            fd = open(file,O_RDWR|O_CREAT|O_APPEND,0644);
 
             // >>
             dup2(fd,1);
