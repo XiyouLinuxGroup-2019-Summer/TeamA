@@ -25,7 +25,7 @@ int g_leave_len = MAXROWLEN;    //一行剩余长度，用于输出对亲
 int g_maxlen;                   //存放某目录下最长文件名的长度
 
 int flag_param = PARAM_NONE;    //参数种类
-int Index[256];                 //记录filenames下标
+int Index[100000];        //记录filenames下标
 char PATH[PATH_MAX + 1];        //记录路径名（-R）
 int flag;
 
@@ -152,13 +152,14 @@ void display_R_l(char *name)
         printf("\n");
 
         display_dir(name);
-        
+    
         char *p = PATH;
         while(*++p);
         while(*--p != '/');
         *p = '\0';
         chdir("..");    //返回上层目录
     }
+    free(name);
 }
 //无-l，打印文件名（上下对亲）
 void display_single(char *name)
@@ -188,13 +189,14 @@ void display_single(char *name)
 void display_R_single(char *name)
 {
     struct stat buf;
+
     if(lstat(name,&buf) == -1)
         my_err("lstat",__LINE__);
 
     if(S_ISDIR(buf.st_mode))
     {
         printf("\n\n");
-    
+        
         display_dir(name);
         
         char *p = PATH;
@@ -204,13 +206,15 @@ void display_R_single(char *name)
         chdir("..");
         printf("\n");
     }
+    free(name);
 }
 
 void display(char **name, int count)
 {
     int i,j;
-    int index[256];
-    memset(&index,0,256);
+    int index[100000];
+    memset(&index,0,sizeof(index));
+    struct stat buf;
 
     //-r需要逆序
     if(flag_param & PARAM_r)
@@ -224,7 +228,7 @@ void display(char **name, int count)
             index[i] = Index[i];
     }
 
-    memset(&Index,0,256);
+    memset(&Index,0,sizeof(Index));
 
     switch(flag_param)
     {
@@ -393,6 +397,7 @@ void display_dir(char *path)
         printf("%s:\n",PATH);
     }
 
+    
     //获取该目录下文件总数和最长文件名
     dir = opendir(path);
     if(dir == NULL)
@@ -406,17 +411,7 @@ void display_dir(char *path)
         count++;
     }
     closedir(dir);
-
     
-    if(count > 10000)
-        my_err("该目录下文件太多...",__LINE__);
-    /*
-    {
-        printf("该目录下文件太多...");
-        return;
-    }
-    */
-
     //动态分配空间，减少栈的消耗
     char **filenames = (char **)malloc(sizeof(char *) * count);
     memset(filenames,0,sizeof(char *) * count);
@@ -450,10 +445,16 @@ void display_dir(char *path)
 
     display(filenames,count);
 
+    
     //释放空间
-    for(i = 0; i < count; i++)
-        free(filenames[i]);
-    free(filenames);
+    if(flag_param & PARAM_R)
+        free(filenames);
+    else
+    {
+        for(i = 0; i < count; i++)
+            free(filenames[i]);
+        free(filenames);
+    }
 
     if(!(flag_param & PARAM_L) && !(flag_param & PARAM_R))
         printf("\n");

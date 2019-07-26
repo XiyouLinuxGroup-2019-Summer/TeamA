@@ -1,9 +1,10 @@
 #include<iostream>
-#include<bits/stdc++.h>
+//#include<bits/stdc++.h>
 #include<string>
 #include<cstdio>
 #include<cstdlib>
 #include<cstring>
+#include <algorithm>
 
 #define ll long long 
 
@@ -11,11 +12,151 @@ using namespace std;
 
 int main()
 {
-    
+
     return 0;
 }
 
 
+
+
+
+
+
+
+/*
+//J
+int main()
+{
+    int n;
+    int i;
+    int a[200010];
+    char c[200010];
+
+    while(~(scanf("%d",&n)))
+    {
+        memset(&a,0,sizeof(a));
+        memset(c,0,sizeof(c));
+        int sum = 0;
+
+        for(i = 0; i < n; i++)
+            scanf("%d",&a[i]);
+        
+        int k = n - 1;
+        int j = 0;
+        int m = 0;  
+        for(i = 0; i <= k; i++)
+        {
+            if((a[i] <= a[k] && a[i] > m) || (a[i] > a[k] && a[k] < m && a[i] >= m)) 
+            {
+                sum++;
+                c[j] = 'L';
+                j++;
+                //strcat(c,"L");
+                m = a[i];
+            }
+            else if((a[i] > a[k] && a[k] > m) || (a[i] < a[k] && a[i] < m && a[k] > m))
+            {
+                sum++;
+                c[j] = 'R';
+                j++;
+                //strcat(c,"R");
+                m = a[k];
+                k--;
+                i--;
+            }
+            else
+                break;
+        }
+        printf("%d\n%s\n",sum,c);
+    }
+    return 0;
+}
+*/
+
+
+
+/*
+//I
+//用队列好像简单好多
+int main()
+{
+    int n;
+    int l,m;
+    int i;
+    int a[10000];
+    char s[10000][10];
+    char s1[2][10];
+
+    cin >> n;
+    while(n--)
+    {
+        cin >> l >> m;
+
+        memset(&a,0,sizeof(a));
+        memset(s,0,sizeof(s));
+        
+        l = l * 100;
+        for(i = 0; i < m; i++)
+            scanf("%d %s",&a[i],s[i]);
+
+        int sum = 0,c = 0;
+        memset(s1,0,sizeof(s1));
+        strcpy(s1[0],"left");
+        strcpy(s1[1],"right");
+        
+        for(i = 0; i < m; i++)
+        {
+            c = 0;
+            if(a[i] == 0)
+                continue;
+            for(int j = i; j < m; j++)
+            {
+                if(strcmp(s1[0],s[j]) == 0)
+                {
+                    if(c + a[j] <= l)
+                    {
+                        c += a[j];
+                        a[j] = 0;
+                    }
+                    else
+                        break;
+                }
+            }
+            sum++;
+            swap(s1[0],s1[1]);
+            i = -1;
+        }
+        cout << sum << endl;
+    }
+        return 0;
+}
+*/
+
+
+
+/*
+//H
+//找规律
+int main()
+{
+    ll n;
+    while(~(scanf("%lld",&n)))
+    {
+        ll y = 1;
+        ll x = 0;
+        ll i;
+        for(i = 1; i < n; i++)
+        {
+            x = y;
+            y = x * 2;
+            if(n >= x && n < y)
+                break;
+        }
+        cout << i << endl;
+    }
+    return 0;
+}
+*/
 
 
 
