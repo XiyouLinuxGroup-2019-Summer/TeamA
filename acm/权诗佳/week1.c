@@ -217,3 +217,87 @@ int main ()
 
     return 0;
 }
+//G
+#include <stdio.h>
+
+int flag = 1;
+
+int main ()
+{
+    int left = 1, right, mid, n, k, ans, m, sum;
+
+    scanf ("%d %d", &n, &k);
+    right = n;
+
+    while ( left <= right && flag == 1 ) {
+        if ( left == right )
+            flag = 0;
+        sum = 0;
+        mid = (left+right)/2;
+        m = 1;
+        while (  mid/m > 0 ) {
+            sum+=mid/m;
+            m = m*k;
+        }
+    
+
+        if ( sum >= n ) {
+            right = mid-1;
+            ans = mid;
+        }
+
+        else {
+            left = mid+1;
+        }
+    }
+
+    printf("%d\n", ans);
+
+    return 0;
+}
+//J
+#include <stdio.h>
+#include <string.h>
+
+char a[200100];
+
+int main()
+{
+    int t, n, k, left, right, mid, i, l;
+
+    scanf("%d", &t);
+    while ( t-- ) {
+        
+        scanf("%d %d", &n, &k);
+        scanf("%s", a);
+        right = n;
+        left = 1;
+
+        while ( left < right ) {
+            mid = (left+right)/2;
+            i = l = 0;
+            while ( a[i] == '0' ) {
+                i++;
+            }
+            while ( i < n ) {
+                if ( a[i] == '0' ) {
+                    i++;
+                    continue;
+                }
+                i+=mid;
+                l++;
+            }
+            if ( l <= k ) {
+                right = mid;
+            }
+            else
+                left = mid+1;
+        }
+        
+        printf("%d\n", left);
+
+    }
+
+    return 0;
+}
+
