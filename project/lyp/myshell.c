@@ -79,19 +79,22 @@ void print_get_input(char *buf, int *historycount, char history[][256])
     uid_t uid;
     struct passwd *pw;
     char buf_[100];
+    char temp[1024];
     
     uid = getuid();
     pw = getpwuid(uid);
     getcwd(buf_,100);    //获取目录路径
 
+    /*
     //打印提示符
     printf("\e[1;32m%s@lyp\e[0m",pw->pw_name);
     printf(":");
     printf("\e[1;34m%s\e[0m",buf_);
     printf("$ ");
-    
+    */
+    sprintf(temp,"\e[1;32m%s@lyp\e[0m:\e[1;34m%s\e[0m$ ",pw->pw_name,buf_);
     //重点在这里
-    char * buf1 = readline("");
+    char * buf1 = readline(temp);
     strcpy(buf,buf1);
     
     len = strlen(buf);
