@@ -12,7 +12,7 @@ using namespace std;
 
 int main()
 {
-
+    
     return 0;
 }
 
@@ -20,6 +20,115 @@ int main()
 
 
 
+
+
+
+
+
+
+/*
+//L
+//开始思路有些问题，后来问了下高星坤
+char s[200010];
+
+int fun(int n, int mid)
+{
+    int sum = 0;
+    for(int i = 0; i < n; i++)
+    {
+        if(s[i] == '1')
+        {
+            sum++;
+            i += mid - 1;
+        }
+    }
+    return sum;
+}
+
+int binary_search(int a, int n, int m)
+{
+    int mid;
+    int b = n;
+    while(a < b)
+    {
+        mid = a + (b - a) / 2;
+        if(fun(n,mid) <= m)
+            b = mid;
+        else
+            a = mid + 1;
+    }
+    return a;
+}
+
+int main()
+{
+    int t;
+    int n,m;
+    scanf("%d",&t);
+    while(t--)
+    {
+        scanf("%d %d",&n,&m);
+        scanf("%s",s);
+        int k = binary_search(1,n,m);
+        printf("%d\n",k);
+    }
+    return 0;
+}
+*/
+
+
+
+/*
+//K
+//开始用字符数组写，太麻烦了...，string真好用
+int main()
+{
+    int n;
+    string s;
+    while(cin >> n)
+    {
+        cin >> s;
+        int flag = 0;
+        int len = s.length();
+        int i;
+        for(i = 0; i < len - 1; i += 2)
+        {
+            if(s[i] == s[i + 1])
+                flag++;
+        }
+
+        if(flag == 0 && len % 2 == 0)
+            cout << 0 << "\n" << s << endl;
+        else if(flag == 0 && len % 2 != 0)
+        {
+            s.erase(len - 1,1);
+            cout << 1 << "\n" << s << endl;
+        }
+        else
+        {
+            int sum = 0;
+            for(i = 0; i < s.length() - 1; i += 2)
+            {
+                if(s[i] == s[i + 1])
+                {
+                    sum++;
+                    s.erase(i,1);
+                    i -= 2;
+                }
+            }
+            len = s.length();
+            if(len % 2 == 0)
+                cout << sum << "\n" << s << endl;
+            else
+            {
+                s.erase(len - 1,1);
+                cout << sum + 1 << "\n" << s << endl;
+            }
+        }
+    }
+    return 0;
+}
+*/
 
 
 
