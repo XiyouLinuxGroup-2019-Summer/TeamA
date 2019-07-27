@@ -10,19 +10,63 @@
 
 using namespace std;
 
+/*
+//N
+int a[4001],b[4001],c[4001],d[4001];
+int sum1[16000010],sum2[16000010];
+
+int main()
+{
+    int n;
+    while(~(scanf("%d",&n)))
+    {
+        for(int i = 0; i < n; i++)
+            scanf("%d %d %d %d",&a[i],&b[i],&c[i],&d[i]);
+
+        int len = 0;
+        for(int i = 0; i < n; i++)
+            for(int j = 0; j < n; j++)
+            {
+                sum1[len] = a[i] + b[j];
+                sum2[len++] = c[i] + d[j];
+            }
+
+        sort(sum2,sum2 + len);
+        
+        int sum = 0;
+        for(int i = 0; i < len; i++)
+        {
+            int l = 0, r = len;
+            while(l < r)
+            {
+                int m = r;
+
+                int mid = l + (r - l) / 2;
+                if(sum1[i] + sum2[mid] >= 0)
+                    r = mid;
+                else
+                    l = mid + 1;
+
+                while(sum1[i] + sum2[mid] == 0 && mid < m)
+                {
+                    sum++;
+                    mid++;
+                }
+            }
+        }
+        printf("%d\n",sum);
+    }
+    return 0;
+}
+*/
+
+
+
 int main()
 {
     
     return 0;
 }
-
-
-
-
-
-
-
-
 
 
 
