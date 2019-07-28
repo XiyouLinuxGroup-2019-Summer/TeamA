@@ -255,6 +255,102 @@ int main ()
 
     return 0;
 }
+//H
+#include <stdio.h>
+
+int main()
+{
+    int n, i, sum, m;
+    scanf("%d", &n);
+
+    sum = 0;
+    for ( i = 1; i <= n; i++ ) {
+         m = i;
+         sum = 1;
+         while ( m ) {
+             sum*=2;
+             m--;
+         }
+         sum--;
+        if ( sum >= n )
+            break;
+    }
+
+    printf("%d\n", i);
+    return 0;
+}
+//I
+#include <stdio.h>
+#define MAX 10000000
+int a[MAX], b[MAX];
+
+int main()
+{
+    int N, m, n, num, i, sum, l, r, L, R, flag;
+    char s[6];
+    scanf("%d", &N);
+
+    while ( N-- ) {
+        scanf("%d %d", &m, &n);
+        m*=100;
+        
+
+        l = r = 0;
+        for ( i = 0; i < n; i++ ) {
+            scanf("%d %s", &num, s);
+            if ( s[0] == 'l' ) {
+                a[l++] = num;
+            }
+            else {
+                b[r++] = num;
+            }
+        }
+
+        flag = 1;
+        i = L = R = 0;
+        while ( i < l ) {
+            sum = 0;
+            while ( sum <= m ) {
+                if ( a[i] == 0 ) {
+                    flag = 0;
+                    break;
+                }
+                sum+=a[i++];
+            }
+            i--;
+            L++;
+            if ( flag == 0 )
+                break;
+        }
+
+        flag = 1;
+        i = 0;
+        while ( i < r ) {
+            sum = 0;
+            while ( sum <= m ) {
+                if ( b[i] == 0 ) {
+                    flag = 0;
+                    break;
+                }
+                sum+=b[i++];
+            }
+            i--;
+            R++;
+            if ( flag == 0 )
+                break;
+        }
+       
+        sum = 0;
+        if ( R >= L )
+            sum = 2*R;
+        else 
+            sum = 2*L-1;
+        printf("%d\n", sum);
+
+    }
+
+    return 0;
+}
 //J
 #include <stdio.h>
 #include <string.h>
@@ -300,4 +396,137 @@ int main()
 
     return 0;
 }
+//K
+#include <stdio.h>
 
+char a[200100], b[200100];
+
+int main()
+{
+    int n, i, j, k;
+    scanf("%d", &n);
+    scanf("%s", a);
+
+    i = k = 0;
+    j = i+1;
+    while ( j < n ) {
+        if ( a[i] != a[j] ) {
+            b[k++] = a[i];
+            b[k++] = a[j];
+            i = j+1;
+            j = j+2;
+        }
+        else
+            j++;
+    }
+
+    printf("%d\n%s\n", n-k, b);
+    return 0;
+}
+//L
+#include <stdio.h>
+#include <string.h>
+
+char a[200100];
+
+int main()
+{
+    int t, n, k, left, right, mid, i, l;
+
+    scanf("%d", &t);
+    while ( t-- ) {
+        
+        scanf("%d %d", &n, &k);
+        scanf("%s", a);
+        right = n;
+        left = 1;
+
+        while ( left < right ) {
+            mid = (left+right)/2;
+            i = l = 0;
+            while ( i < n ) {
+                if ( a[i] == '0' ) {
+                    i++;
+                    continue;
+                }
+                i+=mid;
+                l++;
+            }
+            if ( l <= k ) {
+                right = mid;
+            }
+            else
+                left = mid+1;
+        }
+        
+        printf("%d\n", left);
+
+    }
+
+    return 0;
+}
+//N
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX 4100
+int a[MAX], b[MAX], c[MAX], d[MAX],m[MAX*MAX], n[MAX*MAX];
+ 
+int cmp ( const void *a , const void *b ) 
+{ 
+  return *(int *)a - *(int *)b; 
+}
+
+int up_down( int *num,  int l, int r, int key )
+{
+    int mid;
+
+    while ( l < r ) {
+        mid = (l+r)/2;
+        if ( num[mid] + key >= 0 )
+            r = mid;
+        else
+            l = mid+1;
+    }
+    if ( (num[l] + key) == 0 )
+        return l;
+    else
+        return -1;
+}
+
+int main()
+{
+    int N, i, j, k, e, f, ans;
+    scanf("%d", &N);
+
+    for ( i = 0; i < N; i++ ) {
+        scanf("%d %d %d %d", &a[i], &b[i], &c[i], &d[i]);
+    }
+
+    k = 0;
+    for ( i = 0; i < N; i++ ) {
+        for ( j = 0; j < N; j++ ) {
+            m[k] = a[i]+b[j];
+            n[k++] = c[i]+d[j];
+        }
+    }
+
+    qsort(m, k, sizeof(int), cmp);
+
+    ans = 0;
+    for ( i = 0; i < k; i++ ) {
+        e = up_down(m,0,k-1,n[i]);
+        if ( e != -1 ) {
+            ans++;
+            for ( f = e+1; f < k; f++ ) {
+                if ( m[e] == m[f] )
+                    ans++;
+                else 
+                    break;
+            }
+        }
+    }
+    
+    printf("%d\n", ans);
+
+}
