@@ -18,8 +18,7 @@
 #define have_pipe 3     //命令中有管道 |
 #define out_redirects 4 // >>
 
-void print_prompt();    //打印提示符
-void get_input(char *, int *, char (*)[256]); //得到输入的命令
+void print_get_input(char *, int *, char (*)[256]); //得到输入的命令
 void explain_input(char *, int *, char (*)[256]);  //对输入命令进行解析
 void do_cmd(int, char (*)[256], int, char (*)[256]);   //执行命令
 int find_command(char *);       //查找命令中的可执行程序
@@ -51,8 +50,8 @@ int main()
     {
         //将buf所指向的空间清零
         memset(buf,0,sizeof(buf));
-        print_prompt();
-        get_input(buf,&historycount,history);
+        
+        print_get_input(buf,&historycount,history);
 
        //若输入的命令为exit 或 logout 则退出程序
         if(strcmp(buf,"exit") == 0 || strcmp(buf,"logout") == 0)
@@ -74,29 +73,28 @@ int main()
     exit(0);
 }
 
-void print_prompt()
-{
-    uid_t uid;
-    struct passwd *pw;
-    char buf[100];
-
-    uid = getuid();
-    pw = getpwuid(uid);
-    getcwd(buf,100);    //获取目录路径
-
-    //颜色
-    printf("\e[1;32m%s@lyp\e[0m",pw->pw_name);
-    printf(":");
-    printf("\e[1;34m%s\e[0m",buf);
-    printf("$ ");
-}
-
-void get_input(char *buf, int *historycount, char history[][256])
+void print_get_input(char *buf, int *historycount, char history[][256])
 {
     int len;
+    uid_t uid;
+    struct passwd *pw;
+    char buf_[100];
+    char temp[1024];
     
+    uid = getuid();
+    pw = getpwuid(uid);
+    getcwd(buf_,100);    //获取目录路径
+
+    /*
+    //打印提示符
+    printf("\e[1;32m%s@lyp\e[0m",pw->pw_name);
+    printf(":");
+    printf("\e[1;34m%s\e[0m",buf_);
+    printf("$ ");
+    */
+    sprintf(temp,"\e[1;32m%s@lyp\e[0m:\e[1;34m%s\e[0m$ ",pw->pw_name,buf_);
     //重点在这里
-    char * buf1 = readline("");
+    char * buf1 = readline(temp);
     strcpy(buf,buf1);
     
     len = strlen(buf);

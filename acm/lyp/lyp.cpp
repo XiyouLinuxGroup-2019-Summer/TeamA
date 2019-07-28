@@ -10,16 +10,169 @@
 
 using namespace std;
 
+/*
+//N
+int a[4001],b[4001],c[4001],d[4001];
+int sum1[16000010],sum2[16000010];
+
 int main()
 {
+    int n;
+    while(~(scanf("%d",&n)))
+    {
+        for(int i = 0; i < n; i++)
+            scanf("%d %d %d %d",&a[i],&b[i],&c[i],&d[i]);
 
+        int len = 0;
+        for(int i = 0; i < n; i++)
+            for(int j = 0; j < n; j++)
+            {
+                sum1[len] = a[i] + b[j];
+                sum2[len++] = c[i] + d[j];
+            }
+
+        sort(sum2,sum2 + len);
+        
+        int sum = 0;
+        for(int i = 0; i < len; i++)
+        {
+            int l = 0, r = len;
+            while(l < r)
+            {
+                int m = r;
+
+                int mid = l + (r - l) / 2;
+                if(sum1[i] + sum2[mid] >= 0)
+                    r = mid;
+                else
+                    l = mid + 1;
+
+                while(sum1[i] + sum2[mid] == 0 && mid < m)
+                {
+                    sum++;
+                    mid++;
+                }
+            }
+        }
+        printf("%d\n",sum);
+    }
+    return 0;
+}
+*/
+
+
+
+int main()
+{
+    
     return 0;
 }
 
 
 
+/*
+//L
+//开始思路有些问题，后来问了下高星坤
+char s[200010];
+
+int fun(int n, int mid)
+{
+    int sum = 0;
+    for(int i = 0; i < n; i++)
+    {
+        if(s[i] == '1')
+        {
+            sum++;
+            i += mid - 1;
+        }
+    }
+    return sum;
+}
+
+int binary_search(int a, int n, int m)
+{
+    int mid;
+    int b = n;
+    while(a < b)
+    {
+        mid = a + (b - a) / 2;
+        if(fun(n,mid) <= m)
+            b = mid;
+        else
+            a = mid + 1;
+    }
+    return a;
+}
+
+int main()
+{
+    int t;
+    int n,m;
+    scanf("%d",&t);
+    while(t--)
+    {
+        scanf("%d %d",&n,&m);
+        scanf("%s",s);
+        int k = binary_search(1,n,m);
+        printf("%d\n",k);
+    }
+    return 0;
+}
+*/
 
 
+
+/*
+//K
+//开始用字符数组写，太麻烦了...，string真好用
+int main()
+{
+    int n;
+    string s;
+    while(cin >> n)
+    {
+        cin >> s;
+        int flag = 0;
+        int len = s.length();
+        int i;
+        for(i = 0; i < len - 1; i += 2)
+        {
+            if(s[i] == s[i + 1])
+                flag++;
+        }
+
+        if(flag == 0 && len % 2 == 0)
+            cout << 0 << "\n" << s << endl;
+        else if(flag == 0 && len % 2 != 0)
+        {
+            s.erase(len - 1,1);
+            cout << 1 << "\n" << s << endl;
+        }
+        else
+        {
+            int sum = 0;
+            for(i = 0; i < s.length() - 1; i += 2)
+            {
+                if(s[i] == s[i + 1])
+                {
+                    sum++;
+                    s.erase(i,1);
+                    i -= 2;
+                }
+            }
+            len = s.length();
+            if(len % 2 == 0)
+                cout << sum << "\n" << s << endl;
+            else
+            {
+                s.erase(len - 1,1);
+                cout << sum + 1 << "\n" << s << endl;
+            }
+        }
+    }
+    return 0;
+}
+*/
 
 
 
