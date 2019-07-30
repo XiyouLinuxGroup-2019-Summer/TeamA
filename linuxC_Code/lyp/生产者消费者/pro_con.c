@@ -68,5 +68,9 @@ int main()
     pthread_join(pro, (void *) &statu1);
     pthread_join(con, (void *) &statu2);
 
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&full);
+    pthread_cond_destroy(&empty);
+    
     return 0;
 }
