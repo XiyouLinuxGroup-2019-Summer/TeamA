@@ -46,11 +46,59 @@ int main()
 
 
 
+/*
+//H
+typedef struct _data
+{
+    int a;
+    int b;
+}data;
+data x[1001];
+
+bool cmp(const data &n, const data &m)
+{
+    if(n.b == m.b)
+        return n.a < m.a;
+    return n.b > m.b;
+}
 int main()
 {
+    int t,n;
+    int a[1001];
+    cin >> t;
+    while(t--)
+    {
+        memset(&a, 0, sizeof(a));
+        cin >> n;
+        for(int i = 0; i < n; i++)
+            cin >> x[i].a;
+        for(int i = 0; i < n; i++)
+            cin >> x[i].b;
+        sort(x, x + n, cmp);
 
+        int sum = 0;
+        for(int i = 0; i < n; i++)
+        {
+            int p = x[i].a;
+            int flag = 0;
+            while(p--)
+            {
+                if(a[p] == 0)
+                {
+                    a[p] = 1;
+                    flag = 1;
+                    break;
+                }
+            }
+            if(flag == 0)
+                sum += x[i].b;
+        }
+        cout << sum << endl;
+    }
     return 0;
 }
+*/
+
 
 
 /*
@@ -62,7 +110,7 @@ typedef struct _data
 }data;
 data x[1001];
 
-bool cmd(const data &a, const data &b)
+bool cmp(const data &a, const data &b)
 {
     return a.c > b.c;
 }
@@ -79,7 +127,7 @@ int main()
             cin >> x[i].a >> x[i].b;
             x[i].c = x[i].a / x[i].b;
         }
-        sort(x, x + n, cmd);
+        sort(x, x + n, cmp);
         for(int i = 0; i < n; i++)
         {
             if(flag >= m)
