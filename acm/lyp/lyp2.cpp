@@ -11,6 +11,14 @@
 
 using namespace std;
 
+int main()
+{
+
+    return 0;
+}
+
+
+
 /*
 //J
 bool cmp(const pair<int,int>& a, const pair<int,int>& b)
@@ -39,6 +47,56 @@ int main()
             }
         }
         cout << sum << endl;
+    }
+    return 0;
+}
+*/
+
+
+
+/*
+//I
+bool cmp(const pair<int,int>& a, const pair<int,int>& b)
+{
+    return a.second < b.second;
+
+}
+
+int main()
+{
+    int t,n;
+    cin >> t;
+    while(t--)
+    {
+        cin >> n;
+        pair <int, int> p[200];
+        int a[401];
+        memset(&a,0,sizeof(a));
+
+        for(int i = 0; i < n; i++)
+        {
+            cin >> p[i].first >> p[i].second;
+            if(p[i].first > p[i].second)
+                swap(p[i].first, p[i].second);
+        }
+        sort(p, p + n, cmp);
+
+        for(int i = 0; i< n; i++)
+        {
+            if(p[i].first % 2 == 0)
+                p[i].first -= 1;
+            if(p[i].second % 2 != 0)
+                p[i].second += 1;
+            for(int j = p[i].first; j <= p[i].second; j++)
+                a[j]++;
+        }
+        
+        for(int i = 1; i < 2; i++)
+            for(int j = p[0].first; j < p[n - 1].second; j++)
+                if(a[j] > a[j + 1])
+                    swap(a[j], a[j + 1]);
+        
+        printf("%d\n",a[p[n - 1].second] * 10);
     }
     return 0;
 }
