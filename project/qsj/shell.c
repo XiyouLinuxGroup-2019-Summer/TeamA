@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	while(1){
         name = getpwuid(getuid());
         getcwd(pwd, sizeof(pwd) - 1);
-        sprintf(temp, "[%s @myshell:\033[34m%s\033[0m]$ ", name->pw_name, pwd);
+        sprintf(temp, "[%s @myshell:\033[0;34m%s\033[0m]$ ", name->pw_name, pwd);
 		memset(buf,0,256);             
         s = readline(temp);
         add_history(s);
@@ -352,7 +352,7 @@ int find_command(char *command)
 {
 	DIR *dp;
 	struct dirent*  dirp;
-	char *path[] = {"./","/bin","/usr/bin",NULL};
+	char *path[] = {"./","/bin","/usr/bin","/sbin",NULL};
 
 	if(strncmp(command,"./",2) == 0)
 		command =command + 2;

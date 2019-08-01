@@ -20,13 +20,21 @@
 int g_leave_len = MAXROWLEN;  
 int g_maxlen;                 
 
+typedef struct nam{
+    char name[PATH_MAX];
+    struct nam *next;
+}file;
+
 void my_err(const char *err_string, int line);
-void display(int flag, char * pathname);
+void display(int flag, file *p);
 void display_attribute(struct stat buf, char *name);
 void display_single(struct stat buf, char *name);
-void display_dir(int flag_param, char *path);
+void display_dir(int flag_param, file *p);
 int setc(struct stat buf, char *name);
 int canc();
+void fre ( file *head );
+void add ( file **head, char path[PATH_MAX] );
+
 
 int main(int argc , char ** argv)
 {
@@ -34,8 +42,9 @@ int main(int argc , char ** argv)
     char path[PATH_MAX];
     char param[32];       
     int  flag_param = PARAM_NONE ;
-    struct stat buf ;
- 
+    struct stat buf;
+    file *head = NULL;
+
     j = 0;
     num = 0;
     for( i = 1; i < argc; i++ ) {
@@ -67,7 +76,8 @@ int main(int argc , char ** argv)
     if( (num+1) == argc ){
         strcpy(path,"./");
         path[2]='\0';
-        display_dir(flag_param,path);
+        add(&head, path);
+        display_dir(flag_param,head);
         return 0;
     }
  
@@ -93,16 +103,19 @@ int main(int argc , char ** argv)
             else
                 path[ strlen(argv[i]) ] = '\0';
             
-            display_dir(flag_param,path);
+            add(&head, path);
+            display_dir(flag_param,head);
             i++;
         }
         else {
-            display(flag_param,path);
+            add(&head, path);
+            display(flag_param,head);
             i++;
         }
         }
     }while ( i < argc );
-    
+
+    free(head);
     return 0;
 }
 
@@ -206,17 +219,22 @@ void display_attribute(struct stat buf, char *name)
     printf("\n");
 }
 
-void display_dir(int flag_param, char *path)
+void display_dir(int flag_param, file *p)
 {
     DIR *dir;
     struct dirent *ptr;
     struct stat buf;
-    int count = 0, i, j, len = strlen(path);
-    char temp[PATH_MAX+1], nam[PATH_MAX+1], name[PATH_MAX+1];
+    int count = 0, i, j, len = strlen(p->name);
+    char nam[PATH_MAX+1], name[PATH_MAX+1], filename[PATH_MAX];
+    file temp;
+    file *q = p, *r, *m, *n;
+    r = m = n = NULL;
 
-    dir = opendir(path);
+    dir = opendir(q->name);
     if ( dir == NULL )        
         my_err("opendir", __LINE__);
+    
+    g_maxlen = 0; 
     while ( (ptr = readdir(dir)) != NULL ) {
         if ( g_maxlen < strlen(ptr->d_name) )
             g_maxlen = strlen(ptr->d_name);
@@ -224,37 +242,47 @@ void display_dir(int flag_param, char *path)
     }
     closedir(dir);
 
-    char (*file)[PATH_MAX+1]=(char(*)[PATH_MAX+1])malloc(sizeof(char)*count*(PATH_MAX+1));    
+//    char (*file)[PATH_MAX+1]=(char(*)[PATH_MAX+1])malloc(sizeof(char)*count*(PATH_MAX+1));    
 
-    dir = opendir(path);
+    dir = opendir(q->name);
     for ( i = 0; i < count; i++ ) {
         ptr = readdir(dir);
         if ( ptr == NULL ) 
             my_err("readdir", __LINE__);
-        strncpy( file[i], path, len );
-        file[i][len] = '\0';
-        strcat(file[i], ptr->d_name);
-        file[i][len+strlen(ptr->d_name)] = '\0';
+        strncpy( filename, q->name, len );
+        filename[len] = '\0';
+        strcat(filename, ptr->d_name);
+        filename[len+strlen(ptr->d_name)] = '\0';
+        add(&q, filename);
     }
 
-    for ( i = 0; i < count-1; i++ ) {
-        for ( j = 0; j < count-i-1; j++ ) {
-            if ( strcmp(file[j], file[j+1]) > 0 ) {
-                strcpy(temp, file[j+1]) ;
-                temp[strlen(file[j+1])] = '\0';
-                strcpy(file[j+1], file[j]);
-                file[j+1][strlen(file[j])] = '\0';
-                strcpy(file[j], temp);
-                file[j][strlen(temp)] = '\0';
-            }
-        }
-    }
-    
+   
     if ( (flag_param & PARAM_R) != 0 )
-        printf("%s:\n", path);
-
-    for ( i = 0; i < count; i++ ) 
-        display(flag_param, file[i]);
+        printf("%s:\n", p->name);
+    
+/*    q = p->next;
+    while ( q != r ) {
+        while ( q->next != r ) {
+            if ( strcmp(q->name, q->next->name) > 0 ) {
+                m = q->next;
+                temp = *q;
+                *q = *m;
+                *m = temp;
+                n = q->next;
+                q->next = m->next;
+                m->next = n;
+            }
+            q = q->next;
+        }
+        r = q;
+        q = p->next;
+    }
+*/
+    q = p->next;
+    while ( q ) {
+        display(flag_param, q);
+        q = q->next;
+    }
 
     closedir(dir);
 
@@ -262,16 +290,24 @@ void display_dir(int flag_param, char *path)
         printf("\n");
 
     if ( (flag_param & PARAM_R) != 0 ) {
-        for ( i = 0; i < count; i++ ) {
-            strcpy(name,file[i]);
-            strcpy(nam, file[i]+len);
+        q = p->next;
+        while ( q ) {
+            strcpy(name,q->name);
+            strcpy(nam, q->name+len);
             j = strlen(name);
         
-            if ( nam[0] == '.' )
+            if ( !(strcmp(nam, ".")) || !(strcmp(nam, "..")) )
                 continue;
+
+            if ( (flag_param & PARAM_A) == 0 ) {
+                if ( nam[0] == '.' )
+                    continue;
+            }
+
 
             if ( lstat(name, &buf) == -1 ) {
                 if ( errno == 13 ) {
+                    printf("没有权限访问\n");  
                     return;     //没有权限访问
                 }
                 my_err("stat", __LINE__);
@@ -280,12 +316,14 @@ void display_dir(int flag_param, char *path)
             if ( S_ISDIR(buf.st_mode) ) {
                 name[j] = '/';
                 name[j+1] = '\0';
-                display_dir(flag_param, name);
+                strcpy(q->name, name);
+                display_dir(flag_param, q);
             }
+            q = q->next;
         }
     }
 
-    free(file);
+    fre(p);
 }
 
 
@@ -311,11 +349,13 @@ void display_single(struct stat buf, char *name)
     g_leave_len -= (g_maxlen + 2);
 }
 
-void display(int flag, char * pathname)
+void display(int flag, file *p)
 {
     int i, j;
     struct stat buf;
-    char name[NAME_MAX+1];
+    char name[NAME_MAX+1], pathname[PATH_MAX+1];
+
+    strcpy(pathname, p->name);
 
     for ( i = 0, j = 0; i < strlen(pathname); i++ ) {
         if ( pathname[i] == '/' ) {
@@ -351,5 +391,35 @@ void display(int flag, char * pathname)
         display_attribute(buf, name);
     default:
         break;
+    }
+}
+
+void add ( file **head, char path[PATH_MAX] )
+{
+    file *p = (file*)malloc(sizeof(file));
+    file *last = *head;
+
+    strcpy(p->name, path);
+    p->next = NULL;
+
+    if ( last ) {
+        while ( last->next ) {
+            last = last->next;
+        }
+        last->next = p;
+    }
+
+    else {
+        *head = p;
+    }
+}
+void fre ( file *head )
+{
+    file *p = head, *q;
+    
+    while ( p ) {
+        q = p;
+        p = p->next;
+        free(q);
     }
 }
