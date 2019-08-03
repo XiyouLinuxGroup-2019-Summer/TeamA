@@ -29,9 +29,9 @@ typedef struct threadpoll
 void pool_init();       //初始化线程池
 int pool_add(void *(* process)(void *arg), void *arg); //添加任务
 void *run(void *arg);   //工作线程
-int pool_destroy();    //销毁线程池
+int pool_destroy();     //销毁线程池
 
-Pool *pool = NULL;
+Pool *pool = NULL;      //全局变量
 void pool_init()
 {
     pool = (Pool *)malloc(sizeof(Pool));
@@ -73,7 +73,8 @@ int pool_add(void *(* process)(void *arg), void *arg)
     }
     else
         pool->tasks = new_work;
-    pool->cur_task++;
+
+    pool->cur_task++;   //任务数+1
 
     //唤醒线程去执行此任务,如果线程都在忙碌，这句就没有作用
     pthread_cond_signal(&(pool->cond));
@@ -85,18 +86,18 @@ int pool_add(void *(* process)(void *arg), void *arg)
 void *run(void *arg)
 {
     printf("start thread %ld\n",pthread_self());
-    while(!pool->flag)
+    
+    while(1)
     {
         pthread_mutex_lock(&(pool->mutex));
 
-        //若等待队列为0则处于阻塞状态
+        //若等待队列为0且不销毁线程池则处于阻塞状态
         while(pool->cur_task == 0 && !pool->flag)
         {
             printf("thread %ld is waiting\n",pthread_self());
             pthread_cond_wait(&(pool->cond), &(pool->mutex));
         }
     
-
         //销毁线程池
         if(pool->flag)
         {
@@ -176,13 +177,13 @@ int main()
         pool_add(process, &work_num[i]);
     }
 
-    sleep(5);
+    sleep(3);
 
     //销毁线程池
     pool_destroy();
 
     free(work_num);
-    work_num = NULL;
+    work_num = NULL;    
 
     return 0;
 }
