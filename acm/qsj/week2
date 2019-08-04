@@ -1,0 +1,254 @@
+A
+#include <stdio.h>
+
+double s[5100];
+
+int main()
+{
+    int n, m, i;
+    double a, b, ans = 1000;
+
+    scanf("%d %d", &n, &m);
+
+    i = 0;
+    while ( n-- ) {
+        scanf("%lf %lf", &a, &b);
+        s[i] = a/b;
+        if ( ans > s[i] )
+            ans = s[i];
+        i++;
+    }
+
+    printf("%.8lf\n", ans*m);
+    return 0;
+}
+B
+#include <stdio.h>
+
+int main()
+{
+    int n;
+
+    scanf("%d", &n);
+
+    printf("%d\n", n/2+1);
+    return 0;
+}
+C
+#include <stdio.h>
+
+char s[101];
+int a[101];
+
+int main()
+{
+    int m, n, i, j, k, ans;
+    scanf("%d %d", &m, &n);
+
+    for ( i = 0; i < n; i++ ) {
+        scanf("%s", s);
+        for ( j = 0; j < m; j++ ) {
+            if ( s[j] == '0' )
+                break;
+        }
+        if ( j == m )
+            a[i] = 1;
+    }
+
+    k = ans = 0;
+    for ( i = 0; i < n; i++ ) {
+        if ( a[i] == 0 ) {
+            k++;
+            if ( ans < k )
+                ans = k;
+        }
+        else
+            k = 0;
+    }
+
+    printf("%d\n", ans);
+    return 0;
+}
+D
+#include <stdio.h>
+
+int main()
+{
+    int n, a, b, c, t, i, j, sum;
+
+    scanf("%d %d %d %d %d", &n, &a, &b, &c, &t);
+    sum = n*a;
+    
+    for ( i = 0; i < n; i++ ) {
+        scanf("%d", &j);
+        if ( b < c )
+            sum+=(c-b)*(t-j);
+    }
+
+    printf("%d\n", sum);
+    return 0;
+}
+E
+#include <stdio.h>
+#include <stdlib.h>
+
+int cmp ( const void *a , const void *b )
+{
+  return *(int *)a - *(int *)b;
+}
+
+int main()
+{
+    int a[101], n, m, i, ans;
+
+    scanf("%d %d", &n, &m);
+    for ( i = 0; i < n; i++ ) {
+        scanf("%d", &a[i]);
+    }
+
+    qsort(a, n, sizeof(int), cmp);
+
+    ans = 0;
+    for ( i = 0; i < m; i++ ) {
+        if ( a[i] >= 0 )
+            break;
+        ans-=a[i];
+    }
+
+    printf("%d\n", ans);
+    return 0;
+}
+F
+#include <stdio.h>
+
+int main()
+{
+    int n, i;
+
+    scanf("%d", &n);
+    if ( n > 36 )
+        printf("-1");
+    else {
+        for ( i = 0; i < n/2; i++ ) {
+                printf("8");
+        }
+        if ( n%2 != 0 )
+            printf("9");
+    }
+
+    printf("\n");
+    return 0;
+}
+G
+#include <iostream>
+#include <algorithm>
+#include <stdio.h>
+
+using namespace std;
+
+const int MAXN = 1010;
+
+struct room
+{
+    int J;
+    int F;
+    double value;
+} R[MAXN];
+
+bool cmp(room a, room b)
+{
+    return a.value > b.value;
+}
+
+int main(int argc, const char * argv[])
+{
+    int M, N;
+    while (cin >> M >> N && (M != -1 || N != -1))
+    {
+        for (int i = 0; i < N; i++)
+        {
+            cin >> R[i].J >> R[i].F;
+            R[i].value = R[i].J * 1. / R[i].F;
+        }
+
+        sort(R, R + N, cmp);
+
+        double res = 0;
+        for (int i = 0; i < N; i++)
+        {
+            if (R[i].F <= M)
+            {
+                res += R[i].J;
+                M -= R[i].F;
+            }
+            else
+            {
+                res += R[i].value * M;
+                break;
+            }
+        }
+
+        printf("%.3lf\n", res);
+    }
+
+    return 0;
+}
+H
+#include <stdio.h>
+
+int a[1001], b[1001], d[1001];
+
+int main()
+{
+    int T, N, i, j, temp, ans, flag;
+
+    scanf("%d", &T);
+    while ( T-- ) {
+        scanf("%d", &N);
+        for ( i = 0; i < N; i++ ) {
+            scanf("%d", &a[i]);
+            d[i] = 0;
+        }
+        d[i] = 0;
+        for ( i = 0; i < N; i++ ) {
+            scanf("%d", &b[i]);
+        }
+
+        for ( i = 0; i < N; i++ ) {
+            for ( j = 0; j < N-i-1; j++ ) {
+                if ( b[j] < b[j+1] ) {
+                    temp = b[j];
+                    b[j] = b[j+1];
+                    b[j+1] = temp;
+                    temp = a[j];
+                    a[j] = a[j+1];
+                    a[j+1] = temp;
+                }
+            }
+        }
+
+        ans = 0;
+        for ( i = 0; i < N; i++ ) {
+            if ( d[a[i]] == 0 ) {
+                d[a[i]] = 1;
+                continue;
+            }
+            else {
+                flag = 0;
+                for ( j = a[i]-1; j >= 1; j-- ) {
+                    if ( d[j] == 0 ) {
+                        d[j] = 1;
+                        flag = 1;
+                        break;
+                    }
+                }
+                if ( flag == 0 )
+                    ans+=b[i];
+            }
+        }
+
+        printf("%d\n", ans);
+    }
+
+    return 0;
+}
