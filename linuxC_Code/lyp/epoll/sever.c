@@ -15,6 +15,7 @@
 #define MAXSIZE 1024
 #define MAX_EVENTS 1000
 
+
 //错误处理函数
 void my_err(const char *err_string,int line)
 {
@@ -57,7 +58,8 @@ void del_event(int epfd, int fd, int state)
 void do_read(int epfd, int fd, char *buf)
 {
     int nread;
-    nread = read(fd, buf, sizeof(buf));
+    nread = read(fd, buf, MAXSIZE);
+    printf("%d\n",nread);
     if(nread == -1)
     {
         my_err("read", __LINE__);
@@ -72,7 +74,7 @@ void do_read(int epfd, int fd, char *buf)
     }
     else
     {
-        printf("接受到(%d)：%s", fd, buf);
+        printf("接受到(%d)：%s\n", fd, buf);
         mod_event(epfd, fd, EPOLLOUT);  //由读改为写，下一次循环时发送
     }
     return;
@@ -171,9 +173,9 @@ int main(int argc, char *argv[])
             if((fd == sock_fd) && (events[i].events & EPOLLIN))
                 handle_accept(epfd,sock_fd);
             else if(events[i].events & EPOLLIN)
-                do_read(epfd,fd,buf);
+                do_read(epfd, fd, buf);
             else if(events[i].events & EPOLLOUT)
-                do_write(epfd,fd,buf);
+                do_write(epfd, fd, buf);
         }
     }
     close(epfd);

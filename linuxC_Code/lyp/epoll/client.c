@@ -15,6 +15,7 @@
 #define MAXSIZE 1024
 #define MAX_EVENTS 1000
 
+
 //错误处理函数
 void my_err(const char *err_string,int line)
 {
@@ -53,10 +54,11 @@ void del_event(int epfd, int fd, int state)
 }
 
 //处理读请求
-void do_read(int epfd, int fd, int sock_fd, char *buf)
+void do_read(int epfd, int fd, char *buf)
 {
     int nread;
-    nread = read(fd, buf, sizeof(buf));
+    nread = read(fd, buf, MAXSIZE);
+    printf("%d\n",nread);
     if(nread == -1)
     {
         my_err("read", __LINE__);
@@ -71,6 +73,7 @@ void do_read(int epfd, int fd, int sock_fd, char *buf)
     }
     else
     {
+        /*
         if(fd == STDIN_FILENO)
             add_event(epfd, sock_fd, EPOLLOUT);
         else
@@ -78,14 +81,20 @@ void do_read(int epfd, int fd, int sock_fd, char *buf)
             del_event(epfd, sock_fd, EPOLLIN);
             add_event(epfd, STDOUT_FILENO, EPOLLOUT);
         }
+        */
+        printf("%s\n",buf);
+        mod_event(epfd, fd, EPOLLOUT);
     }
     return;
 }
 
 //处理写请求
-void do_write(int epfd, int fd, int sock_fd, char *buf)
+void do_write(int epfd, int fd, char *buf)
 {
     int nwrite;
+    printf("请输入：");
+    scanf("%s",buf);
+
     nwrite = write(fd, buf, strlen(buf));
     if(nwrite == -1)
     {
@@ -94,15 +103,17 @@ void do_write(int epfd, int fd, int sock_fd, char *buf)
     }
     else
     {
+        /*
         if(fd == STDOUT_FILENO)
             del_event(epfd, fd, EPOLLOUT);
         else
             mod_event(epfd, fd, EPOLLIN);
+        */
+        mod_event(epfd, fd, EPOLLIN);
     }
     memset(buf,0,MAXSIZE);
     return;
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -136,8 +147,9 @@ int main(int argc, char *argv[])
  
     //多路复用
     epfd = epoll_create(MAX_EVENTS);    //创建句柄
-    add_event(epfd, STDIN_FILENO, EPOLLIN);    
-    
+    //add_event(epfd, STDIN_FILENO, EPOLLIN);    
+    add_event(epfd, sock_fd, EPOLLOUT);
+
     //获取已准备好的事件
     while(1)
     {
@@ -148,9 +160,15 @@ int main(int argc, char *argv[])
             fd = events[i].data.fd; 
             //根据文件描述符类型和事件类型进行处理
             if(events[i].events & EPOLLIN)
-                do_read(epfd, fd, sock_fd, buf);
+            {
+                //printf("111\n");
+                do_read(epfd, fd, buf);
+            }
             else if(events[i].events & EPOLLOUT)
-                do_write(epfd, fd, sock_fd, buf);
+            {
+                //printf("222\n");
+                do_write(epfd, fd, buf);
+            }
         }
     }
     close(epfd);
