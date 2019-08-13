@@ -3,7 +3,8 @@
 void login(pack *recv)
 {
     char flag[5] = "";
-    char s[256], str[256];
+    char s[256];
+    int i;
     MYSQL_RES *res;   
     MYSQL_ROW row;
     
@@ -25,7 +26,7 @@ void login(pack *recv)
     if ( flag[0] == '0' ) {
         Md5(recv->message, s);
         if ( strcmp(s, row[1]) == 0 ) { 
-            if (search(head,recv->send_name) == 1) {
+            if (search(head,recv->send_name) != 0) {
                 flag[0] = '2';
                 send(recv->send_fd, &flag, sizeof(flag), 0);
                 mysql_free_result(res);
@@ -51,5 +52,11 @@ void login(pack *recv)
 
     add(&head, recv->send_fd, recv->send_name);
     send(recv->send_fd, &flag, sizeof(flag), 0);
+    for ( i = 0; i < num_send_pack; i++ ) {
+        if ( strcmp(send_array[i].login_name, recv->send_name) == 0 ) {
+            send(recv->send_fd, &send_array[i], sizeof(pack), 0);
+            memset(&send_array[i], 0, sizeof(pack));
+        }
+    }
     mysql_free_result(res);
 }

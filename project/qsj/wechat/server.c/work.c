@@ -12,7 +12,17 @@ void *work( void *recv )
         login(p);
         break;
     case 2:
-        addfriend(p); 
+        addfriend(p);
+        break;
+    case 3:
+        deletefriend(p);
+        break;
+    case 4:
+        showfriends(p);
+        break;
+    case 5:
+        chatone(p);
+        break;
     default:
         break;
     }

@@ -18,13 +18,14 @@ int main()
         close(conn_fd);
         return 0;
     }
-
+    
     if (pthread_create(&thid, NULL, recv_pack, (void *)&conn_fd) != 0) {                                                                   
         my_err("pthread_create", __LINE__);
         exit(1);
     }
+    if ( num_recv_pack != 0 ) 
+        printf("you receive some new information or notifications\n");
     function();
     close(conn_fd);
     return 0;
 }
-

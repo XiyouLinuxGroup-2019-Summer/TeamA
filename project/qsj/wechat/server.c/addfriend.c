@@ -25,7 +25,7 @@ void addfriend(pack *recv)
         }
         
         if ( flag != 1 ) {
-            sprintf(recv->message, "no this person named %s!\n", recv->recv_name);
+            sprintf(recv->message, "no this person which named %s!", recv->recv_name);
             send(recv->send_fd, recv, sizeof(pack), 0);
             return ;
         }
@@ -47,16 +47,21 @@ void addfriend(pack *recv)
         }
         mysql_free_result(res);
         if ( flag == 2 ) {
-            strcpy(recv->message, "this people had been your friend!\n");
+            strcpy(recv->message, "this people had been your friend!");
             send(recv->send_fd, recv, sizeof(pack), 0);
             return ;
         }
 
         recv->recv_fd = search(head,recv->recv_name);
-            
+        recv->ans = 3;
+        strcpy(recv->login_name, recv->recv_name);
+        
+
         if ( recv->recv_fd != 0  ) {
-            recv->ans = 3; 
             send(recv->recv_fd, recv, sizeof(pack), 0);
+        }
+        else {
+            memcpy((void *)&send_array[num_send_pack++],(void *)recv, sizeof(pack));
         }
     }
 
@@ -67,12 +72,21 @@ void addfriend(pack *recv)
                 printf("mysql_real_query insert failure!\n");
                 exit(0);
             }
-            strcpy(recv->message, "add friend success\n");
+            strcpy(recv->message, "add friend success");
         }
         else 
-            strcpy(recv->message, "the person refuse to be your friend\n");
-        recv->send_fd = search(head, recv->send_name);
-        send(recv->send_fd,recv, sizeof(pack), 0);
+            strcpy(recv->message, "the person refuse to be your friend");
+        
+        recv->recv_fd = search(head, recv->send_name);
+        strcpy(recv->login_name, recv->send_name);
+
+
+        if ( recv->recv_fd != 0  ) {
+            send(recv->recv_fd, recv, sizeof(pack), 0);
+        }
+        else {
+            memcpy((void *)&send_array[num_send_pack++],(void *)recv, sizeof(pack));
+        }
     }
 }
 
