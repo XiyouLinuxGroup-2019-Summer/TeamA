@@ -6,8 +6,8 @@
 #define MAX 6
 
 pthread_mutex_t mutex;
-pthread_cond_t full;    //仓库是否已满
-pthread_cond_t empty;   //仓库是否已空
+pthread_cond_t full;    //队列是否已满
+pthread_cond_t empty;   //队列是否已空
 int head,tail;
 
 void *producer(void *arg)
@@ -25,7 +25,7 @@ void *producer(void *arg)
 
         tail = (tail + 1) % MAX;
         printf("tail = %d\n",tail);
-        pthread_cond_signal(&empty);        //发送仓库未空消息
+        pthread_cond_signal(&empty);        //发送队列未空消息
     
         sleep(1);
         pthread_mutex_unlock(&mutex);
@@ -47,7 +47,7 @@ void *consumer(void *arg)
 
         head = (head + 1) % MAX;
         printf("head = %d\n",head);
-        pthread_cond_signal(&full);                 //发送仓库未满消息
+        pthread_cond_signal(&full);                 //发送队列未满消息
 
         pthread_mutex_unlock(&mutex);
     }
