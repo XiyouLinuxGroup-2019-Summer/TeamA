@@ -8,6 +8,7 @@
 #include <sys/epoll.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <memory.h>
 #include <unistd.h>
 #include <mysql/mysql.h>
 #include <pthread.h>
@@ -35,24 +36,18 @@ typedef struct{
     unsigned char buffer[64];
 }MD5_CTX;
 
-typedef struct {
-    int choice;
-    char name[256];
-    char password[256];
-    char status[20];
-    int  send_fd;
-    int recv_fd;
-}userinfo;
 
 typedef struct {                                                                                                                               
      int type;
      int ans;
+     char login_name[256];
      char send_name[256];   
      char recv_name[256];   
      int send_fd;           
      int recv_fd;           
      char message[256];     
  }pack;
+
 typedef struct Node{
     int fd;
     char name[256];
@@ -62,6 +57,8 @@ typedef struct Node{
 int sock_fd, conn_fd;
 MYSQL mysql;
 node *head;
+pack send_array[200];
+int num_send_pack;
 
 void MD5Init(MD5_CTX *context);  
 void MD5Update(MD5_CTX *context,unsigned char *input,unsigned int inputlen);  
@@ -79,4 +76,7 @@ void add (node**Head, int fd_t, char *nam);
 void fre (node *Head);
 void delet ( node **Head, int fd_t );
 void addfriend(pack *recv);
+void deletefriend(pack *recv);
 int search( node *Head, char *nam );
+void showfriends(pack *recv); 
+void chatone(pack *recv);

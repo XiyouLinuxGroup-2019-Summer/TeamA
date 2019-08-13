@@ -5,7 +5,7 @@ void addfriend()
     pack send_t;
     int n;
     strcpy(send_t.send_name, username);
-    printf("please enter the person's pet-name you want to add:\n");
+    printf("please enter the person's pet-name that you want to add:\n");
     scanf("%s", send_t.recv_name);getchar();
     while ( strcmp(send_t.send_name, send_t.recv_name) == 0 ) {
         printf("you shouldn't add yourself, please enter again\n");
@@ -21,7 +21,7 @@ void addfriend()
         my_err("send", __LINE__);
 }
 
-void add_friend( pack pack_t, int fd ) 
+void add_friend( pack pack_t ) 
 {
     char choice_t[101];
     int choice;
@@ -34,12 +34,23 @@ void add_friend( pack pack_t, int fd )
         printf("2:refuse\n");
         scanf("%s", choice_t);
         choice = get_choice(choice_t);
-        if ( choice  == 1 ) 
-            strcpy(pack_t.message, "0");
-        else 
-            strcpy(pack_t.message, "1");
+        while ( 1 ) {
+            if ( choice  == 1 ) {
+                strcpy(pack_t.message, "0");
+                break;
+            }
+            else if ( choice == 2 ) {
+                strcpy(pack_t.message, "1");
+                break;
+            }
+            else {
+                printf("please enter the correct option\n");
+                scanf("%s", choice_t);
+                choice = get_choice(choice_t);
+            }
+        }
         pack_t.ans = 2;
-        send(fd, &pack_t, sizeof(pack), 0);
+        send(conn_fd, &pack_t, sizeof(pack), 0);
     }
 
     else
