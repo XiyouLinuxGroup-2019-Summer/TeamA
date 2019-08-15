@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include<stdio.h>
 #include<stdlib.h>
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -35,6 +35,8 @@
 #define CHAT_MANY 17
 #define CHECK_MES_FRI 18
 #define CHECK_MES_GRP 19
+#define SEND_FILE 20
+#define RECV_FILE 21
 
 #define PASSIVE 0
 #define ACTIVE 1
@@ -65,15 +67,19 @@ void check_grp();       //查看所加群
 void check_mem_grp();   //查看群中成员
 void chat_one();        //私聊
 void chat_many();       //群聊
+void send_file(char *file_name);       //发送文件
+void recv_file(PACK *recv_pack);       //接收文件
 void check_mes_fri();   //查看与好友聊天记录
 void check_mes_grp();   //查看群组聊天记录
 void send_pack(int type, char *send_name, char *recv_name, char *mes);
+int get_file_size(char *send_file_name); //得到文件大小
 
 int sock_fd;
 char user[MAX_CHAR];    //当前登陆的账号名称
 FRI_INFO fri_info;      //好友列表信息
 GROUP_INFO grp_info;    //群列表信息
-RECORD_INFO rec_info[100];  //聊天记录
+RECORD_INFO rec_info[55];  //聊天记录
+char mes_file[MAX_CHAR * 3];
 
 //来自外部的请求——消息盒子
 char name[100][MAX_CHAR];    
@@ -125,18 +131,24 @@ int main(int argc, char *argv[])
 
 void *get_back(void *arg)
 {
-    pthread_mutex_t mutex_t;
-    pthread_mutex_init(&mutex_t, NULL);
+    pthread_mutex_t mutex_g;
+    pthread_mutex_init(&mutex_g, NULL);
     while(1)
     {
-        pthread_mutex_lock(&mutex_t);
         int flag;
         PACK recv_pack;
+        int i = 0;
+        int fd;
         if(recv(sock_fd, &recv_pack, sizeof(PACK), 0) < 0)
             my_err("recv", __LINE__);
  
         switch(recv_pack.type)
         {
+        case CHECK_FRI:
+            memcpy(&fri_info, &recv_pack.fri_info, sizeof(FRI_INFO));
+            pthread_cond_signal(&cond);           
+            break;
+
         case GET_FRI_STA:
             flag = recv_pack.data.mes[0] - '0';
             if(flag == 0)
@@ -268,16 +280,36 @@ void *get_back(void *arg)
             pthread_cond_signal(&cond);
             break;
 
+        case CHECK_GRP:
+            memcpy(&grp_info, &recv_pack.grp_info, sizeof(GROUP_INFO));
+            pthread_cond_signal(&cond);           
+            break;
+
+        case CHECK_MEM_GRP:
+            memcpy(&fri_info, &recv_pack.fri_info, sizeof(FRI_INFO));
+            pthread_cond_signal(&cond);           
+            break;
+
         case CHAT_ONE:
             flag = recv_pack.data.mes[0] - '0';
             if(flag == 0)
                 printf("\n\t\t该用户不存在!\n");
             else if(flag == 1)
-                printf("\n\t\t\e[1;33m好友%s想要与你一起探讨人生...\e[0m\n",recv_pack.data.send_name);
+            {
+                printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
+                sign_ive[sign] = ACTIVE;
+                sprintf(mes_box[sign], "好友%s想要与你一起探讨人生...", recv_pack.data.send_name);
+                sign++;
+            }
             else if(flag == 2)
                 printf("\n\t\t该用户不在线!\n");
             else if(flag == 3)
                 printf("\n\t\t该好友已被屏蔽!\n");
+            else if(flag == 6)
+            {
+                memcpy(&rec_info, &recv_pack.rec_info, sizeof(rec_info));
+                pthread_cond_signal(&cond);           
+            }
             else
                 printf("\n\t\t\e[1;34m%s:\e[0m %s\n", recv_pack.data.send_name, recv_pack.data.mes);
             break;
@@ -287,15 +319,107 @@ void *get_back(void *arg)
             if(flag == 0)
                 printf("\n\t\t该群不存在!\n");
             else if(flag == 1)
-                printf("\n\t\t\e[1;33m群%s有新消息🌶\e[0m\n",recv_pack.data.send_name);
+            {
+                printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
+                sign_ive[sign] = ACTIVE;
+                sprintf(mes_box[sign], "群%s有人进入群聊🌶", recv_pack.data.send_name);
+                sign++;
+            }
+            else if(flag == 2)
+                printf("\n\t\t\e[1;33m群%s有新消息\e[0m\n",recv_pack.data.send_name);
+            else if(flag == 6)
+            {
+                memcpy(&rec_info, &recv_pack.rec_info, sizeof(rec_info));
+                pthread_cond_signal(&cond);           
+            }
             else
                 printf("\n\t\t\e[1;34m%s:\e[0m %s\n", recv_pack.data.send_name, recv_pack.data.mes);
+            break;
+
+        case CHECK_MES_FRI:
+            flag = recv_pack.data.mes[0] - '0';
+            if(flag == 0)
+                printf("\t\t该用户不是你的好友\n");
+            else if(flag == 1)
+            {
+                memcpy(&rec_info, &recv_pack.rec_info, sizeof(rec_info));
+                printf("\n\t\t\e[1;34m***********His_Message***********\e[0m\n");
+                if(rec_info[0].message[0] == '0')
+                printf("\t\t暂无历史记录\n");
+                else
+                {
+                    while(rec_info[i].message[0] != '0')
+                    {
+                        printf("\t\t\e[1;35m%s-->%s: \e[0m%s\n",rec_info[i].name1, rec_info[i].name2, rec_info[i].message);
+                        i++;
+                    }
+                }
+            }
+            pthread_cond_signal(&cond);
+            break;
+
+        case CHECK_MES_GRP:
+            flag = recv_pack.data.mes[0] - '0';
+            if(flag == 0)
+                printf("\t\t你不是该群成员\n");
+            else if(flag == 1)
+            {
+                memcpy(&rec_info, &recv_pack.rec_info, sizeof(rec_info));
+                printf("\n\t\t\e[1;34m***********His_Message***********\e[0m\n");
+                if(rec_info[0].message[0] == '0')
+                printf("\t\t暂无历史记录\n");
+                else
+                {
+                    while(rec_info[i].message[0] != '0')
+                    {
+                        printf("\t\t\e[1;35m%s-->%s: \e[0m%s\n",rec_info[i].name1, rec_info[i].name2, rec_info[i].message);
+                        i++;
+                    }
+                }
+            }
+            pthread_cond_signal(&cond);
+            break;
+
+        case SEND_FILE:
+                pthread_cond_signal(&cond);
+            break;
+
+        case RECV_FILE:
+            flag = recv_pack.data.mes[0] - '0';
+            if(strcmp(recv_pack.data.mes, "request") == 0)
+            {
+                printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
+                sign_ive[sign] = PASSIVE;
+                sprintf(name[sign], "%s", recv_pack.data.send_name);
+                mes_box_inc[sign] = RECV_FILE;
+                sprintf(mes_box[sign], "%s给你发来了一个文件,是否接收(y/n): ", recv_pack.data.send_name);
+                sign++;
+            }
+            else if(strcmp(recv_pack.data.mes, "1699597") == 0)
+            {
+                memset(mes_file, 0, sizeof(mes_file));
+                mes_file[0] = '_';
+                strcat(mes_file, recv_pack.data.send_name);
+                fd = creat(mes_file, S_IRWXU);
+                close(fd);
+            }
+            else if(flag == 0)
+                printf("\n\t\t%s拒绝接收文件...\n", recv_pack.data.recv_name);
+            else if(flag == 1)
+                printf("\n\t\t%s已同意接收文件\n", recv_pack.data.recv_name);
+            else if(flag == 2)
+                printf("\n\t\t%s已接收完毕\n", recv_pack.data.recv_name);
+            else 
+            {
+                pthread_mutex_lock(&mutex_g);
+                recv_file(&recv_pack);
+                pthread_mutex_unlock(&mutex_g);
+            }
             break;
 
         default:
             break;
         }
-        pthread_mutex_unlock(&mutex_t);
     }
 }
 
@@ -405,7 +529,7 @@ int login()
         return 1;
     }
     else if(recv_login_flag == 0)
-        printf("\t\t该用户账号不存在!\n");
+        printf("\t\t登陆失败!\n");
     else if(recv_login_flag == 2)
         printf("\t\t该用户已在线!\n");
     return 0;
@@ -523,9 +647,7 @@ void check_fri()
 
     pthread_mutex_lock(&mutex);
     send_pack(flag, user, "server", mes);
-    if(recv(sock_fd, &fri_info, sizeof(FRI_INFO), 0) < 0)
-        my_err("recv", __LINE__);
-        
+    pthread_cond_wait(&cond, &mutex);
     printf("\n\t\t\e[1;34m***********friends***********\e[0m\n");
     if(fri_info.friends_num == 0)
         printf("\t\t暂无好友!\n");
@@ -594,21 +716,22 @@ void chat_one()
     int i = 0;
     memset(mes, 0, sizeof(mes));
     memset(&rec_info, 0, sizeof(rec_info));
-    rec_info[0].message[0] = '0';
     pthread_mutex_lock(&mutex);
     printf("\n\t\t你想要和谁聊天呢? ");
     scanf("%s",chat_name);
     mes[0] = '1';
     send_pack(flag, user, chat_name, mes);
-    if(recv(sock_fd, &rec_info, sizeof(rec_info), 0) < 0)
-        my_err("recv", __LINE__);
-    printf("\n\t\t\e[1;34m***********off_Message***********\e[0m\n");
+    pthread_cond_wait(&cond, &mutex);
+    printf("\n\t\t\e[1;34m***********Message***********\e[0m\n");
     if(rec_info[0].message[0] == '0')
         printf("\t\t暂无未读消息\n");
-    while(rec_info[i].message[0] != '0')
+    else
     {
-        printf("\t\t\e[1;35m%s-->%s: \e[0m%s\n",rec_info[i].name1, rec_info[i].name2, rec_info[i].message);
-        i++;
+        while(rec_info[i].message[0] != '0')
+        {
+            printf("\t\t\e[1;35m%s-->%s: \e[0m%s\n",rec_info[i].name1, rec_info[i].name2, rec_info[i].message);
+            i++;
+        }
     }
     char choice_s[100];
     int choice;
@@ -635,7 +758,7 @@ void chat_one()
             break;
 
         case 2:
-            
+            send_file(chat_name);
             break;
 
         default:
@@ -646,6 +769,57 @@ void chat_one()
     mes[0] = '0';
     send_pack(flag, user, "server", mes);
     pthread_mutex_unlock(&mutex);
+}
+
+//发送文件
+void send_file(char *file_name)
+{
+    int flag = SEND_FILE;
+    int fd;
+    int length = 0;
+    int sum;
+    char send_file_name[MAX_CHAR];
+    char mes[MAX_CHAR * 3];
+    bzero(mes, MAX_CHAR * 3);
+    printf("\t\t你想要发送的文件名称：");
+    scanf("%s",send_file_name);
+    send_pack(flag, send_file_name, file_name, "1699597");
+    pthread_cond_wait(&cond, &mutex);
+    
+    sum = get_file_size(send_file_name);
+    printf("\t\t总大小：%d\n", sum);
+    fd = open(send_file_name, O_RDONLY);
+    if(fd == -1)
+        printf("file: %s not find\n", send_file_name);
+    else
+    {
+        while(length = read(fd, mes, sizeof(mes)) > 0)
+        {
+            send_pack(flag, user, file_name, mes);
+            bzero(mes, MAX_CHAR * 3);
+            printf("\t\t\e[1;35m发送中...\e[0m\n");
+            pthread_cond_wait(&cond, &mutex);
+        }
+    }
+    printf("\t\t\e[1;35m发送成功!\e[0m\n");
+    send_pack(flag, user, file_name, "13nb");
+    close(fd);
+}
+
+//得到文件大小
+int get_file_size(char *send_file_name)
+{
+    int fd;
+    int len;
+    if((fd = open(send_file_name,O_RDONLY)) == -1)
+    {
+        my_err("open",__LINE__);
+        return 0;
+    }
+    len = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
+    close(fd);
+    return len;
 }
 
 //群管理
@@ -751,9 +925,7 @@ void check_grp()
 
     pthread_mutex_lock(&mutex);
     send_pack(flag, user, "server", mes);
-    if(recv(sock_fd, &grp_info, sizeof(GROUP_INFO), 0) < 0)
-        my_err("recv", __LINE__);
-        
+    pthread_cond_wait(&cond, &mutex);
     printf("\n\t\t\e[1;34m***********groups***********\e[0m\n");
     if(grp_info.grp_num == 0)
         printf("\t\t暂无加入群聊!\n");
@@ -788,11 +960,10 @@ void check_mem_grp()
     {
         memset(&fri_info, 0, sizeof(fri_info));
         send_pack(flag, user, "server", mes);
-        if(recv(sock_fd, &fri_info, sizeof(FRI_INFO), 0) < 0)
-            my_err("recv", __LINE__);
+        pthread_cond_wait(&cond, &mutex);
         printf("\n\t\t\e[1;34m***********%s***********\e[0m\n",mes);
         if(fri_info.friends_num == 0)
-            printf("该群中暂无成员!\n");
+            printf("\t\t该群中暂无成员!\n");
         else
         {
             for(i = 0; i < fri_info.friends_num; i++)
@@ -936,56 +1107,33 @@ void chat_many()
     int i = 0;
     memset(mes, 0, sizeof(mes));
     memset(&rec_info, 0, sizeof(rec_info));
-    rec_info[0].message[0] = '0';
     pthread_mutex_lock(&mutex);
     printf("\n\t\t你想要在那个群中聊天呢? ");
     scanf("%s",chat_name);
     mes[0] = '1';
     send_pack(flag, user, chat_name, mes);
-    if(recv(sock_fd, &rec_info, sizeof(rec_info), 0) < 0)
-        my_err("recv", __LINE__);
-    printf("\n\t\t\e[1;34m***********off_Message***********\e[0m\n");
+    pthread_cond_wait(&cond, &mutex);
+    printf("\n\t\t\e[1;34m***********Message***********\e[0m\n");
     if(rec_info[0].message[0] == '0')
-        printf("\t\t暂无未读消息\n");
-    while(rec_info[i].message[0] != '0')
+        printf("\t\t暂无消息\n");
+    else
     {
-        printf("\t\t\e[1;35m%s-->%s: \e[0m%s\n",rec_info[i].name1, rec_info[i].name2, rec_info[i].message);
-        i++;
+        while(rec_info[i].message[0] != '0')
+        {
+            printf("\t\t\e[1;35m%s-->%s: \e[0m%s\n",rec_info[i].name1, rec_info[i].name2, rec_info[i].message);
+            i++;
+        }
     }
-    char choice_s[100];
-    int choice;
+    printf("\t\t按q退出群聊\n");
     do
     {
-        printf("\n\t\t\e[1;32m-----------------------------\e[0m\n");
-        printf("\t\t\e[1;32m|\e[0m         1.发送消息        \e[1;32m|\e[0m\n");
-        printf("\t\t\e[1;32m-----------------------------\e[0m\n");
-        printf("\t\t\e[1;32m|\e[0m         2.发送文件        \e[1;32m|\e[0m\n");
-        printf("\t\t\e[1;32m-----------------------------\e[0m\n");
-        printf("\t\t\e[1;32m|\e[0m         0.返回            \e[1;32m|\e[0m\n");
-        printf("\t\t\e[1;32m-----------------------------\e[0m\n");
-        //printf("\t\t请选择：");
-        scanf("%s",choice_s);
-        choice = get_choice(choice_s);
-        
         memset(mes, 0, sizeof(mes));
-        switch(choice)
-        {
-        case 1:
-            printf("\t\t\e[1;34m%s:\e[0m ", user);
-            scanf("%s", mes);
-            send_pack(flag, user, chat_name, mes);
-            break;
+        printf("\t\t\e[1;34m%s:\e[0m ", user);
+        scanf("%s", mes);
+        send_pack(flag, user, chat_name, mes);
+    }while(mes[0] != 'q');
 
-        case 2:
-            
-            break;
-
-        default:
-            break;
-        }
-    }while(choice != 0);
-
-    mes[0] = '0';
+    mes[0] = 'q';
     send_pack(flag, user, "server", mes);
     pthread_mutex_unlock(&mutex);
 }
@@ -1015,7 +1163,7 @@ void Menu_message()
             break;
 
         case 2:
-            //check_mes_grp();
+            check_mes_grp();
             break;
            
         default:
@@ -1036,17 +1184,42 @@ void check_mes_fri()
     printf("\n\t\t你想要查看与谁的聊天记录? ");
     scanf("%s",mes_fri);
     send_pack(flag, user, "server", mes_fri);
-    if(recv(sock_fd, &rec_info, sizeof(rec_info), 0) < 0)
-        my_err("recv", __LINE__);
-    printf("\n\t\t\e[1;34m***********Message***********\e[0m\n");
-    if(rec_info[0].message[0] == '0')
-        printf("\t\t暂无历史记录\n");
-    while(rec_info[i].message[0] != '0')
-    {
-        printf("\t\t\e[1;35m%s-->%s: \e[0m%s\n",rec_info[i].name1, rec_info[i].name2, rec_info[i].message);
-        i++;
-    }
+    pthread_cond_wait(&cond, &mutex);
     pthread_mutex_unlock(&mutex);
+}
+
+//群组聊天记录
+void check_mes_grp()
+{
+    int i = 0;
+    int flag = CHECK_MES_GRP;
+    char mes_grp[MAX_CHAR];
+    memset(&rec_info, 0, sizeof(rec_info));
+    rec_info[0].message[0] = '0';
+    pthread_mutex_lock(&mutex);
+    printf("\n\t\t你想要查看那个群的聊天记录? ");
+    scanf("%s",mes_grp);
+    send_pack(flag, user, "server", mes_grp);
+    pthread_cond_wait(&cond, &mutex);
+    pthread_mutex_unlock(&mutex);
+}
+
+//接收文件
+void recv_file(PACK *recv_pack)
+{
+    int fd;
+    int length;
+    char mes[MAX_CHAR * 3 + 1];
+    bzero(mes, MAX_CHAR * 3 + 1);
+    fd = open(mes_file, O_WRONLY | O_APPEND);
+    if(fd == -1)
+        printf("\t\tfile: %s not find\n", mes_file);
+    strcpy(mes, recv_pack->data.mes);
+    length = strlen(mes);
+    if(write(fd, mes, length) != length)
+        my_err("write", __LINE__);
+    printf("\t\t接收中...\n");
+    close(fd);
 }
 
 //消息盒子
@@ -1075,6 +1248,7 @@ void Menu_mes_box()
 void send_pack(int type, char *send_name, char *recv_name, char *mes)
 {
     PACK pack_send;
+    memset(&pack_send, 0, sizeof(PACK));
     pack_send.type = type;
     pack_send.data.recv_fd = sock_fd;
     strcpy(pack_send.data.send_name, send_name);
