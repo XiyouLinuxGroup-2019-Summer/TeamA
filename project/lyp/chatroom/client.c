@@ -4,6 +4,8 @@
 #include<sys/types.h>
 #include<sys/socket.h>
 #include<unistd.h>
+#include<termios.h>
+#include<assert.h>
 #include<string.h>
 #include<time.h>
 #include<pthread.h>
@@ -41,6 +43,7 @@
 #define PASSIVE 0
 #define ACTIVE 1
 
+#define ECHOFLAGS (ECHO | ECHOE | ECHOK | ECHONL)
 void *get_back(void *arg); //接受服务器的反馈
 void Menu();            //主菜单
 void Menu_friends();    //好友管理
@@ -73,6 +76,8 @@ void check_mes_fri();   //查看与好友聊天记录
 void check_mes_grp();   //查看群组聊天记录
 void send_pack(int type, char *send_name, char *recv_name, char *mes);
 int get_file_size(char *send_file_name); //得到文件大小
+int set_disp_mode(int fd,int option);
+int getpasswd(char* passwd, int size);
 
 int sock_fd;
 char user[MAX_CHAR];    //当前登陆的账号名称
@@ -511,11 +516,16 @@ int login()
     char login_passwd[MAX_CHAR];
     PACK recv_login;
     int recv_login_flag;
+    int i = 0;
 
     printf("\t\t请输入账号名称：");
     scanf("%s",login_name);
+    getchar();                          //将回车符屏蔽掉
+    set_disp_mode(STDIN_FILENO,0);      //关闭输出回显
     printf("\t\t请输入账号密码：");
-    scanf("%s",login_passwd);
+    getpasswd(login_passwd, 18);
+    set_disp_mode(STDIN_FILENO,1);
+    getchar();
 
     send_pack(flag, login_name, "server", login_passwd);
     if(recv(sock_fd, &recv_login, sizeof(PACK), 0) < 0)
@@ -1124,7 +1134,7 @@ void chat_many()
             i++;
         }
     }
-    printf("\t\t按q退出群聊\n");
+    printf("\n\t\t\e[1;33m按q退出群聊\e[0m\n");
     do
     {
         memset(mes, 0, sizeof(mes));
@@ -1257,3 +1267,42 @@ void send_pack(int type, char *send_name, char *recv_name, char *mes)
     if(send(sock_fd, &pack_send, sizeof(PACK), 0) < 0)
         my_err("send",__LINE__);
 }
+
+int set_disp_mode(int fd,int option)
+{
+   int err;
+   struct termios term;
+   if(tcgetattr(fd,&term) == -1)
+   {
+     perror("Cannot get the attribution of the terminal");
+     return 1;
+   }
+   if(option)
+        term.c_lflag|=ECHOFLAGS;
+   else
+        term.c_lflag &=~ECHOFLAGS;
+   err = tcsetattr(fd,TCSAFLUSH,&term);
+   if(err == -1 && err == CINTR)
+   {
+        perror("Cannot set the attribution of the terminal");
+        return 1;
+   }
+   return 0;
+}
+
+int getpasswd(char* passwd, int size)
+{
+   int c;
+   int n = 0;
+   do
+   {
+      c=getchar();
+      if (c != '\n')
+      {
+         passwd[n++] = c;
+      }
+   }while(c != '\n' && n < (size - 1));
+   passwd[n] = '\0';
+   return n;
+}
+
