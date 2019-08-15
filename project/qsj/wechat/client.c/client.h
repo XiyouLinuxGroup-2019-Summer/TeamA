@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include <string.h>
 #include <math.h>
 #include <signal.h>
@@ -27,10 +28,9 @@ typedef struct {
 
 int conn_fd;
 char username[256];
+char chatname[256];
 pack recv_array[100];
-pack recv_message[100];
 int num_recv_pack;
-int num_message_pack;
 
 void registe();
 int login();
@@ -42,6 +42,7 @@ void work();
 void my_err(const char * err_string, int line);
 void *recv_pack(void *fd);
 void addfriend();
+void creategroup();
 char *pas( char *s );
 void add_friend(pack pack_t); 
 void deletefriend();
@@ -51,6 +52,7 @@ void deal_pack();
 void showfriends();
 void chatone();
 void show_friends( pack pack_t );
-void deal_message_pack ();
-void chat();
-void chat_one( pack pack_t );
+void inviteperson();
+void add_group( pack pack_t );
+void chat_one( pack pack_t, int i );
+void addgroup();

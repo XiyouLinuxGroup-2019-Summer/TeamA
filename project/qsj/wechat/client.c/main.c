@@ -2,7 +2,6 @@
 
 int main()
 {
-    signal(SIGINT, SIG_IGN);
     pthread_t thid;
     conn_fd = socket(AF_INET, SOCK_STREAM, 0);
     if ( conn_fd < 0 ) 
@@ -23,8 +22,6 @@ int main()
         my_err("pthread_create", __LINE__);
         exit(1);
     }
-    if ( num_recv_pack != 0 ) 
-        printf("you receive some new information or notifications\n");
     function();
     close(conn_fd);
     return 0;

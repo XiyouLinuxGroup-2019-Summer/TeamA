@@ -1,33 +1,23 @@
 #include "client.h"
 
-void addfriend()
+void addgroup()
 {
     pack send_t;
-    int n;
+
+    printf("please enter the groupname:\n");
+    scanf("%s", send_t.recv_name);
     strcpy(send_t.send_name, username);
-    printf("please enter the person's pet-name that you want to add:\n");
-    scanf("%s", send_t.recv_name);getchar();
-    while ( strcmp(send_t.send_name, send_t.recv_name) == 0 ) {
-        printf("you shouldn't add yourself, please enter again\n");
-        scanf("%s", send_t.recv_name);getchar();
-    }
-    printf("please enter the massage to show yourself:\n");
-    fgets(send_t.message, sizeof(send_t.message), stdin);
-    n = strlen(send_t.message);
-    send_t.message[n-1] = '\0';
-    send_t.type = 2;
+    send_t.type = 8;
     send_t.ans = 1;
-    if ( send(conn_fd, &send_t, sizeof(pack), 0) < 0 )
-        my_err("send", __LINE__);
+    send(conn_fd, &send_t, sizeof(pack), 0);
 }
 
-void add_friend( pack pack_t ) 
+void add_group( pack pack_t )
 {
     char choice_t[101];
     int choice;
     if ( pack_t.ans == 3 ) {
-        printf("the person named %s want to be your friend,following is his message:\n", pack_t.send_name);
-        printf("%s\n", pack_t.message);
+        printf("the person named %s want to join group\n", pack_t.send_name);
         printf("please enter your choice:\n");
         printf("1:agree\n");
         printf("2:refuse\n");

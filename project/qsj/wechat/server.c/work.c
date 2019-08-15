@@ -23,6 +23,15 @@ void *work( void *recv )
     case 5:
         chatone(p);
         break;
+    case 6:
+        creategroup(p);
+        break;
+    case 7:
+        inviteperson(p);
+        break;
+    case 8:
+        addgroup(p);
+        break;
     default:
         break;
     }

@@ -79,4 +79,7 @@ void addfriend(pack *recv);
 void deletefriend(pack *recv);
 int search( node *Head, char *nam );
 void showfriends(pack *recv); 
+void creategroup(pack *recv);
+void addgroup(pack *recv);
+void inviteperson(pack *recv);
 void chatone(pack *recv);
