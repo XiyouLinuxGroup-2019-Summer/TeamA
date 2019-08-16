@@ -17,7 +17,7 @@
 
 #define SERV_PORT 9527
 
-#define EXIT 0
+#define EXIT -1
 #define REGISTE 1
 #define LOGIN 2
 #define CHECK_FRI 3
@@ -390,7 +390,6 @@ void *get_back(void *arg)
             break;
 
         case RECV_FILE:
-            flag = recv_pack.data.mes[0] - '0';
             if(strcmp(recv_pack.data.mes, "request") == 0)
             {
                 printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
@@ -408,11 +407,11 @@ void *get_back(void *arg)
                 fd = creat(mes_file, S_IRWXU);
                 close(fd);
             }
-            else if(flag == 0)
+            else if(strcmp(recv_pack.data.mes, "0816") == 0)
                 printf("\n\t\t%s拒绝接收文件...\n", recv_pack.data.recv_name);
-            else if(flag == 1)
+            else if(strcmp(recv_pack.data.mes, "1867") == 0)
                 printf("\n\t\t%s已同意接收文件\n", recv_pack.data.recv_name);
-            else if(flag == 2)
+            else if(strcmp(recv_pack.data.mes, "2936") == 0)
                 printf("\n\t\t%s已接收完毕\n", recv_pack.data.recv_name);
             else 
             {
@@ -651,12 +650,12 @@ void check_fri()
 {
     int flag = CHECK_FRI;
     char mes[MAX_CHAR];
-    memset(mes, 0, sizeof(mes));
+    bzero(mes, MAX_CHAR);
     memset(&fri_info, 0, sizeof(fri_info));
     int i;
 
     pthread_mutex_lock(&mutex);
-    send_pack(flag, user, "server", mes);
+    send_pack(flag, user, "server", "1");
     pthread_cond_wait(&cond, &mutex);
     printf("\n\t\t\e[1;34m***********friends***********\e[0m\n");
     if(fri_info.friends_num == 0)
@@ -787,15 +786,17 @@ void send_file(char *file_name)
     int flag = SEND_FILE;
     int fd;
     int length = 0;
-    int sum;
+    int sum, n, m = 0;
     char send_file_name[MAX_CHAR];
-    char mes[MAX_CHAR * 3];
-    bzero(mes, MAX_CHAR * 3);
+    PACK send_file;
+    send_file.type = flag;
     printf("\t\t你想要发送的文件名称：");
     scanf("%s",send_file_name);
     send_pack(flag, send_file_name, file_name, "1699597");
     pthread_cond_wait(&cond, &mutex);
     
+    strcpy(send_file.data.send_name, user);
+    strcpy(send_file.data.recv_name, file_name);
     sum = get_file_size(send_file_name);
     printf("\t\t总大小：%d\n", sum);
     fd = open(send_file_name, O_RDONLY);
@@ -803,13 +804,21 @@ void send_file(char *file_name)
         printf("file: %s not find\n", send_file_name);
     else
     {
-        while(length = read(fd, mes, sizeof(mes)) > 0)
+        //while(sum > m)
+        while((length = read(fd, send_file.file.mes, MAX_FILE - 1)) > 0)
         {
-            send_pack(flag, user, file_name, mes);
-            bzero(mes, MAX_CHAR * 3);
+            send_file.file.size = length;    
+            if(send(sock_fd, &send_file, sizeof(PACK), 0) < 0)
+                my_err("send",__LINE__);
+            
+            //n = strlen(send_file.data.mes);
+            //m += n;
+            //printf("%d\t%d\t%d\n", length, n, m);
+            bzero(send_file.file.mes, MAX_FILE);
             printf("\t\t\e[1;35m发送中...\e[0m\n");
-            pthread_cond_wait(&cond, &mutex);
+            //pthread_cond_wait(&cond, &mutex);
         }
+        //printf("sum:%d   length:%d ", sum, length) ;
     }
     printf("\t\t\e[1;35m发送成功!\e[0m\n");
     send_pack(flag, user, file_name, "13nb");
@@ -1224,9 +1233,7 @@ void recv_file(PACK *recv_pack)
     fd = open(mes_file, O_WRONLY | O_APPEND);
     if(fd == -1)
         printf("\t\tfile: %s not find\n", mes_file);
-    strcpy(mes, recv_pack->data.mes);
-    length = strlen(mes);
-    if(write(fd, mes, length) != length)
+    if(write(fd, recv_pack->file.mes, recv_pack->file.size) < 0)
         my_err("write", __LINE__);
     printf("\t\t接收中...\n");
     close(fd);

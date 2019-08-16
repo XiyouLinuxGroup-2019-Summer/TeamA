@@ -20,7 +20,7 @@
 #define LISTENQ 10      //连接请求队列的最大长度
 #define MAX_EVENTS 1000
 
-#define EXIT 0
+#define EXIT -1
 #define REGISTE 1
 #define LOGIN 2
 #define CHECK_FRI 3
@@ -1197,6 +1197,7 @@ void check_grp(PACK *recv_pack)
         }
         q = q->next;
     }
+    /*
     printf("%d\n", i);
     q = pStart;
     while(q)
@@ -1204,6 +1205,7 @@ void check_grp(PACK *recv_pack)
         printf("%s\t%s\t%d\n", q->name1, q->name2, q->statu_s);
         q = q->next;
     }
+    */
     recv_pack->grp_info.grp_num = i;
 
     send_more(fd, flag, recv_pack, "");
@@ -1726,9 +1728,7 @@ void recv_file(PACK *recv_pack)
                 break;
             }
         }
-        strcpy(mes, recv_pack->data.mes);
-        length = strlen(mes);
-        if(write(fp, mes, length) != length)
+        if(write(fp, recv_pack->file.mes, recv_pack->file.size) < 0)
             my_err("write", __LINE__);
         close(fp);
     }
@@ -1743,8 +1743,9 @@ void send_file(PACK *recv_pack)
     int fd2;
     int fp;
     int length = 0;
-    char mes[MAX_CHAR * 3];
-    bzero(mes, MAX_CHAR * 3);
+    PACK send_file;
+    send_file.type = flag;
+
     char ss[MAX_CHAR];
     User *t = pHead;
     int flag_2 = 0;
@@ -1772,26 +1773,35 @@ void send_file(PACK *recv_pack)
         for(i = 0; i < file.sign_file; i++)
             if(strcmp(file.file_send_name[i], recv_pack->data.send_name) == 0)
                 break;
-        send_more(fd2, flag, recv_pack, "1");
+        send_more(fd2, flag, recv_pack, "1867");
         strcpy(recv_pack->data.recv_name, file.file_name[i]);
         send_more(fd, flag, recv_pack, "1699597");
+
+        printf("%d\t%d\n", fd, fd2);
+        strcpy(send_file.data.send_name, recv_pack->data.recv_name);
+        strcpy(send_file.data.recv_name, recv_pack->data.send_name);
         fp = open(file.file_name[i], O_RDONLY);
         if(fp == -1)
             printf("file: %s not find\n", file.file_name[i]);
-        while(length = read(fp, mes, sizeof(mes)) > 0)
+        while((length = read(fp, send_file.file.mes, MAX_FILE - 1)) > 0)
         {
-            send_more(fd, flag, recv_pack, mes);
-            bzero(mes, MAX_CHAR * 3);
+            send_file.file.size = length;
+            if(send(fd, &send_file, sizeof(PACK), 0) < 0)
+                my_err("send",__LINE__);
+            bzero(send_file.file.mes, MAX_FILE);
+            //send_more(fd, flag, recv_pack, mes);
+            //bzero(mes, MAX_CHAR * 3 + 1);
         }
         printf("发送成功!\n");
-        send_more(fd2, flag, recv_pack, "2");
-        //remove(file.file_name[i]);
+        printf("%d\t%d\n", fd, fd2);
+        send_more(fd2, flag, recv_pack, "2936");
+        remove(file.file_name[i]);
         file.file_send_name[i][0] = '\0';
         close(fp);
     }
     else if(recv_pack->data.mes[0] == 'n')
     {
-        send_more(fd2, flag, recv_pack, "0");
+        send_more(fd2, flag, recv_pack, "0816");
         for(i = 0; i < file.sign_file; i++)
             if(strcmp(file.file_send_name[i], recv_pack->data.send_name) == 0)
                 break;
