@@ -4,7 +4,7 @@ void chatone()
 {
     pack send_t;
     char str[256];
-    int n;
+    int n, j;
     time_t timep;
 
     strcpy(send_t.send_name, username);
@@ -19,7 +19,13 @@ void chatone()
     send_t.ans = 1;
     send(conn_fd, &send_t, sizeof(pack), 0);
     printf("********* CHAT WHIT %s *********\n", send_t.recv_name);
-    while ( 1 ) {
+    for ( j = 0; j < num_recv_pack; j++ ) {
+        if (strcmp(recv_array[j].send_name, send_t.recv_name) == 0 && recv_array[j].type == 5) {
+            printf("%s\n", recv_array[j].message);
+            memset(&recv_array[j], 0, sizeof(pack));
+        }
+    }
+   while ( 1 ) {
         memset(send_t.message,0,strlen(send_t.message));
         fgets(send_t.message, sizeof(send_t.message), stdin);
         n = strlen(send_t.message);
@@ -37,7 +43,7 @@ void chatone()
     }
 }
 
-void chat_one( pack pack_t, int i )
+void chat_one( pack pack_t )
 {
     char str[256];
     int n, j;
@@ -51,7 +57,7 @@ void chat_one( pack pack_t, int i )
 
     strcpy(chatname, pack_t.send_name);
     printf("********* CHAT WHIT %s *********\n", pack_t.send_name);
-    for ( j = i; j < num_recv_pack; j++ ) {
+    for ( j = 0; j < num_recv_pack; j++ ) {
         if (strcmp(recv_array[j].send_name, pack_t.send_name) == 0 && recv_array[j].type == 5) {
             printf("%s\n", recv_array[j].message);
             memset(&recv_array[j], 0, sizeof(pack));

@@ -35,6 +35,9 @@ void *work( void *recv )
     case 9:
         chatgroup(p);
         break;
+    case 10:
+        sendfile(p);
+        break;
     default:
         break;
     }

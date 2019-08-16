@@ -9,7 +9,7 @@ void *recv_pack( void *fd )
             my_err("recv",__LINE__);
        
         if ( pack_t.type == 3 )
-            add_friend(pack_t);
+            delete_friend(pack_t);
         if ( pack_t.type == 4 )
             show_friends(pack_t);
         if ( pack_t.type == 2 ) {
@@ -46,28 +46,27 @@ void *recv_pack( void *fd )
                 printf("you have a new group message!\n");
             }
         }
-
+        if ( pack_t.type == 10 )
+            send_file(pack_t);
     }
 }
 
 void deal_pack()
 {
-    int i, j;
+    int i;
     for ( i = 0; i < num_recv_pack; i++ ) {
         switch(recv_array[i].type) {
         case 2:
             add_friend(recv_array[i]);
             break;
         case 5:
-            j = i;
-            chat_one(recv_array[i], j);
+            chat_one(recv_array[i]);
             break;
         case 8:
             add_group(recv_array[i]);
             break;
         case 9:
-            j = i;
-            chat_group(recv_array[i], j);
+            chat_group(recv_array[i]);
             break;
         default:
             break;

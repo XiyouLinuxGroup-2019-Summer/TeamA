@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <memory.h>
@@ -74,6 +75,7 @@ void *work(void *recv);
 void my_err(const char * err_string, int line);
 void add (node**Head, int fd_t, char *nam);
 void fre (node *Head);
+void sendfile(pack *recv);
 void delet ( node **Head, int fd_t );
 void addfriend(pack *recv);
 void deletefriend(pack *recv);
