@@ -12,6 +12,7 @@ void work()
     printf("*****  6.creategroup    *****\n");
     printf("*****  7.invite person  *****\n");
     printf("*****  8.add group      *****\n");
+    printf("*****  9.chatgroup      *****\n");
     printf("*****************************\n");
 }
 
@@ -48,6 +49,9 @@ int function()
             break;
         case 8:
             addgroup();
+            break;
+        case 9:
+            chatgroup();
             break;
         default:
             break;

@@ -32,6 +32,9 @@ void *work( void *recv )
     case 8:
         addgroup(p);
         break;
+    case 9:
+        chatgroup(p);
+        break;
     default:
         break;
     }

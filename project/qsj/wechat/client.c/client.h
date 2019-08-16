@@ -56,3 +56,5 @@ void inviteperson();
 void add_group( pack pack_t );
 void chat_one( pack pack_t, int i );
 void addgroup();
+void chatgroup();
+void chat_group(pack pack_t, int i);

@@ -77,6 +77,7 @@ void fre (node *Head);
 void delet ( node **Head, int fd_t );
 void addfriend(pack *recv);
 void deletefriend(pack *recv);
+void chatgroup(pack *recv);
 int search( node *Head, char *nam );
 void showfriends(pack *recv); 
 void creategroup(pack *recv);

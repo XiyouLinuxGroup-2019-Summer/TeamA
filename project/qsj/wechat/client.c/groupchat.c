@@ -1,6 +1,6 @@
 #include "client.h"
 
-void chatone()
+void chatgroup()
 {
     pack send_t;
     char str[256];
@@ -8,17 +8,13 @@ void chatone()
     time_t timep;
 
     strcpy(send_t.send_name, username);
-    printf("please enter the porson's name which you want to chat with:\n");
+    printf("please enter the group's name which you want to chat in:\n");
     scanf("%s", send_t.recv_name);getchar();
-    while ( strcmp(send_t.send_name, send_t.recv_name) == 0 ) {
-        printf("you shouldn't chat with yourself, please enter again\n");
-        scanf("%s", send_t.recv_name);getchar();
-    }
     strcpy(chatname, send_t.recv_name);
-    send_t.type = 5;
+    send_t.type = 9;
     send_t.ans = 1;
     send(conn_fd, &send_t, sizeof(pack), 0);
-    printf("********* CHAT WHIT %s *********\n", send_t.recv_name);
+    printf("********* CHAT IN %s *********\n", send_t.recv_name);
     while ( 1 ) {
         memset(send_t.message,0,strlen(send_t.message));
         fgets(send_t.message, sizeof(send_t.message), stdin);
@@ -37,22 +33,21 @@ void chatone()
     }
 }
 
-void chat_one( pack pack_t, int i )
+void chat_group( pack pack_t, int i )
 {
     char str[256];
     int n, j;
     pack send_message;
     time_t timep;
 
-    strcpy(send_message.recv_name, pack_t.send_name);
-    strcpy(send_message.send_name, pack_t.recv_name);
-    send_message.type = 5;
-    send_message.ans = 2;
+    strcpy(send_message.send_name, pack_t.send_name);
+    strcpy(send_message.recv_name, pack_t.recv_name);
+    send_message.type = 9;
 
-    strcpy(chatname, pack_t.send_name);
-    printf("********* CHAT WHIT %s *********\n", pack_t.send_name);
+    strcpy(chatname, pack_t.recv_name);
+    printf("********* CHAT IN %s *********\n", pack_t.recv_name);
     for ( j = i; j < num_recv_pack; j++ ) {
-        if (strcmp(recv_array[j].send_name, pack_t.send_name) == 0 && recv_array[j].type == 5) {
+        if (strcmp(recv_array[j].recv_name, pack_t.recv_name) == 0 && recv_array[j].type == 9) {
             printf("%s\n", recv_array[j].message);
             memset(&recv_array[j], 0, sizeof(pack));
         }
@@ -67,7 +62,7 @@ void chat_one( pack pack_t, int i )
             strcpy(chatname, "");
             break;
         }
-        sprintf(str, "%s%s:\n%s", ctime(&timep), pack_t.recv_name, send_message.message);
+        sprintf(str, "%s%s:\n%s", ctime(&timep), pack_t.send_name, send_message.message);
         memset(send_message.message,0,strlen(send_message.message));
         strcpy(send_message.message, str);
         send(conn_fd, &send_message, sizeof(pack), 0);

@@ -53,7 +53,7 @@ void chatone(pack *recv)
     }
     recv->recv_fd = search(head, recv->recv_name);
     strcpy(recv->login_name, recv->recv_name);
-
+    
     if ( recv->recv_fd != 0  ) {
         send(recv->recv_fd, recv, sizeof(pack), 0);
     }

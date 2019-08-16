@@ -25,7 +25,7 @@ void *recv_pack( void *fd )
             else {    
                 memcpy((void *)&recv_array[num_recv_pack++],(void *)&pack_t, sizeof(pack));
                 sleep(1);
-                printf("you have a new message!\n");
+                printf("you have a new contact message!\n");
             }
         }
         if ( pack_t.type == 6 )
@@ -37,6 +37,16 @@ void *recv_pack( void *fd )
             sleep(1);
             printf("you have a new group request!\n");
         }
+        if ( pack_t.type == 9 ) {
+            if (strcmp(chatname, pack_t.recv_name) == 0)
+                printf("%s\n", pack_t.message);
+            else {    
+                memcpy((void *)&recv_array[num_recv_pack++],(void *)&pack_t, sizeof(pack));
+                sleep(1);
+                printf("you have a new group message!\n");
+            }
+        }
+
     }
 }
 
@@ -54,6 +64,10 @@ void deal_pack()
             break;
         case 8:
             add_group(recv_array[i]);
+            break;
+        case 9:
+            j = i;
+            chat_group(recv_array[i], j);
             break;
         default:
             break;
