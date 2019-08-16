@@ -168,7 +168,7 @@ int main()
     memset(&serv_addr,0,len);
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(SERV_PORT);
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_addr.sin_addr.s_addr = inet_addr("192.168.3.15");
 
     //将套接字绑定到本地端口
     if(bind(sock_fd,(struct sockaddr *)&serv_addr,len) < 0)
@@ -211,10 +211,12 @@ int main()
                 ev.data.fd = conn_fd;               //设置与要处理事件相关的文件描述符
                 ev.events = EPOLLIN;                //设置要处理的事件类型
                 epoll_ctl(epfd, EPOLL_CTL_ADD, conn_fd, &ev);   //注册epoll事件
+                continue;
             }
             else if(events[i].events & EPOLLIN)
             {
-                ret = recv(events[i].data.fd, &recv_t, sizeof(PACK), 0);
+                ret = recv(events[i].data.fd, &recv_t, sizeof(PACK), MSG_WAITALL);
+                printf("ret = %d\n", ret);
                 recv_t.data.send_fd = events[i].data.fd;
 
                 if(ret < 0)
@@ -240,7 +242,8 @@ int main()
                     close(events[i].data.fd);
                     continue;
                 }
-                
+                //if(recv_t.type == 0)
+                  //  continue;
                 //输出收到的包信息
                 printf("\n\e[1;34m****PACK****\e[0m\n");
                 printf("\e[1;34m*\e[0m type      : %d\n", recv_t.type);
@@ -521,6 +524,12 @@ void registe(PACK *recv_pack)
         strcpy(pNew->passwd, recv_pack->data.mes);
         pNew->statu_s = OFFLINE;
         Insert(pNew);
+t = pHead;
+    while(t)
+    {
+        printf("%s\t%s\t%d\n", t->name, t->passwd, t->statu_s);
+        t = t->next;
+    }
 
         memset(query_str, 0, strlen(query_str));
         sprintf(query_str, "insert into userinfo values('%s', '%s')", recv_pack->data.send_name, recv_pack->data.mes);
@@ -532,8 +541,6 @@ void registe(PACK *recv_pack)
     
     ch[1] = '\0';
     send_pack(fd, recv_pack, ch);
-    free(pNew);
-    pNew = NULL;
 }
 
 //注册——加入链表
@@ -549,6 +556,7 @@ void Insert(User *pNew)
 //登陆
 void login(PACK *recv_pack)
 {
+    printf("000\n");
     char ch[5];
     int fd = recv_pack->data.send_fd;
     int i;
@@ -579,7 +587,7 @@ void login(PACK *recv_pack)
             ch[0] = '2';
     }
     ch[1] = '\0';
-    
+    printf("%s\n", ch);
     send_pack(fd, recv_pack, ch);
     
     for(i = 0; i < sign; i++)
@@ -604,6 +612,7 @@ void login(PACK *recv_pack)
     }
     if(book == sign)
         sign = book = 0;
+    printf("222\n");
 }
 
 //查看好友列表
@@ -1834,13 +1843,15 @@ void send_pack(int fd, PACK *recv_pack, char *ch)
 {
     PACK pack_send;
     memcpy(&pack_send, recv_pack, sizeof(PACK));
-    
+    printf("%s\t%s\n", pack_send.data.recv_name, pack_send.data.send_name);
     strcpy(pack_send.data.recv_name, pack_send.data.send_name);
     strcpy(pack_send.data.send_name, "server");
     strcpy(pack_send.data.mes, ch);
+    printf("%s\t%s\n", pack_send.data.recv_name, pack_send.data.send_name);
+    //pack_send.data.mes[0] = ch[0];
+    printf("%s\n", pack_send.data.mes);
     pack_send.data.recv_fd = pack_send.data.send_fd;
     pack_send.data.send_fd = fd;
-
     if(send(fd, &pack_send, sizeof(PACK), 0) < 0)
         my_err("send", __LINE__);
 }

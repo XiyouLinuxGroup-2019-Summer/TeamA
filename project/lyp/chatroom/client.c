@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     memset(&serv_addr,0,sizeof(struct sockaddr_in));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(SERV_PORT);
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_addr.sin_addr.s_addr = inet_addr("192.168.3.15");
     
     //创建TCP套接字
     sock_fd = socket(AF_INET,SOCK_STREAM,0);
@@ -144,7 +144,7 @@ void *get_back(void *arg)
         PACK recv_pack;
         int i = 0;
         int fd;
-        if(recv(sock_fd, &recv_pack, sizeof(PACK), 0) < 0)
+        if(recv(sock_fd, &recv_pack, sizeof(PACK), MSG_WAITALL)< 0)
             my_err("recv", __LINE__);
  
         switch(recv_pack.type)
@@ -497,7 +497,7 @@ void registe()
     scanf("%s",registe_passwd);
     
     send_pack(flag, registe_name, "server", registe_passwd);
-    if(recv(sock_fd, &recv_registe, sizeof(PACK), 0) < 0)
+    if(recv(sock_fd, &recv_registe, sizeof(PACK), MSG_WAITALL) < 0)
         my_err("recv", __LINE__);
     recv_registe_flag = recv_registe.data.mes[0] - '0';
 
@@ -527,8 +527,9 @@ int login()
     getchar();
 
     send_pack(flag, login_name, "server", login_passwd);
-    if(recv(sock_fd, &recv_login, sizeof(PACK), 0) < 0)
+    if(recv(sock_fd, &recv_login, sizeof(PACK), MSG_WAITALL) < 0)
         my_err("recv", __LINE__);
+    
     recv_login_flag = recv_login.data.mes[0] - '0';
 
     if(recv_login_flag == 1)
