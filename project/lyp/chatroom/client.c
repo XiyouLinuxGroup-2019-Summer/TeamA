@@ -81,10 +81,12 @@ int getpasswd(char* passwd, int size);
 
 int sock_fd;
 char user[MAX_CHAR];    //当前登陆的账号名称
+char grp_name[MAX_CHAR];
 FRI_INFO fri_info;      //好友列表信息
 GROUP_INFO grp_info;    //群列表信息
 RECORD_INFO rec_info[55];  //聊天记录
 char mes_file[MAX_CHAR * 3];
+int ffflag;
 
 //来自外部的请求——消息盒子
 char name[100][MAX_CHAR];    
@@ -105,8 +107,9 @@ int main(int argc, char *argv[])
     memset(&serv_addr,0,sizeof(struct sockaddr_in));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(SERV_PORT);
-    serv_addr.sin_addr.s_addr = inet_addr("192.168.3.15");
-    
+    //serv_addr.sin_addr.s_addr = inet_addr("192.168.3.15");
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
     //创建TCP套接字
     sock_fd = socket(AF_INET,SOCK_STREAM,0);
     if(sock_fd < 0)
@@ -235,8 +238,30 @@ void *get_back(void *arg)
             if(flag == 0)
                 printf("\n\t\t该群不存在!\n");
             else if(flag == 1)
-                printf("\n\t\t加群成功!\n");
-            pthread_cond_signal(&cond);
+            {
+                printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
+                bzero(grp_name, MAX_CHAR);
+                strcpy(grp_name, recv_pack.file.mes);
+                sign_ive[sign] = PASSIVE;
+                sprintf(name[sign], "%s", recv_pack.data.recv_name);
+                mes_box_inc[sign] = ADD_GRP;
+                sprintf(mes_box[sign], "%s请求加入群聊%s(y/n): ", recv_pack.data.recv_name, recv_pack.file.mes);
+                sign++;
+            }
+            else if(flag == 2)
+            {
+                printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
+                sign_ive[sign] = ACTIVE;
+                sprintf(mes_box[sign], "你已加入群聊%s", recv_pack.data.recv_name);
+                sign++;
+            }
+            else if(flag == 3)
+            {
+                printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
+                sign_ive[sign] = ACTIVE;
+                sprintf(mes_box[sign], "加入群聊%s请求被拒绝", recv_pack.data.recv_name);
+                sign++;
+            }
             break;
 
         case OUT_GRP:
@@ -269,7 +294,16 @@ void *get_back(void *arg)
                 printf("\n\t\t只有群主可以设置管理员!\n");
             else if(flag == 3)
                 printf("\n\t\t此用户不在群中!\n");
-            pthread_cond_signal(&cond);
+            else if(flag == 6)
+            {
+                printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
+                sign_ive[sign] = ACTIVE;
+                sprintf(mes_box[sign], "你被设置为群%s的管理员", recv_pack.data.send_name);
+                sign++;
+                break;
+            }
+            if(flag != 6)
+                pthread_cond_signal(&cond);
             break;
 
         case KICK_GRP:
@@ -282,7 +316,16 @@ void *get_back(void *arg)
                 printf("\n\t\t只有群主/管理员可以踢人!\n");
             else if(flag == 3)
                 printf("\n\t\t此用户不在群中!\n");
-            pthread_cond_signal(&cond);
+            else if(flag == 6)
+            {
+                printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
+                sign_ive[sign] = ACTIVE;
+                sprintf(mes_box[sign], "你被踢出群聊%s", recv_pack.data.send_name);
+                sign++;
+                break;
+            }
+            if(flag != 6)
+                pthread_cond_signal(&cond);
             break;
 
         case CHECK_GRP:
@@ -298,7 +341,10 @@ void *get_back(void *arg)
         case CHAT_ONE:
             flag = recv_pack.data.mes[0] - '0';
             if(flag == 0)
+            {
                 printf("\n\t\t该用户不存在!\n");
+                ffflag = 1;
+            }
             else if(flag == 1)
             {
                 printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
@@ -307,22 +353,30 @@ void *get_back(void *arg)
                 sign++;
             }
             else if(flag == 2)
-                printf("\n\t\t该用户不在线!\n");
-            else if(flag == 3)
-                printf("\n\t\t该好友已被屏蔽!\n");
-            else if(flag == 6)
             {
-                memcpy(&rec_info, &recv_pack.rec_info, sizeof(rec_info));
-                pthread_cond_signal(&cond);           
+                printf("\n\t\t该用户不在线!\n");
+                ffflag = 1;
             }
+            else if(flag == 3)
+            {
+                printf("\n\t\t该好友已被屏蔽!\n");
+                ffflag = 1;
+            }
+            else if(flag == 6)
+                memcpy(&rec_info, &recv_pack.rec_info, sizeof(rec_info));
             else
-                printf("\n\t\t\e[1;34m%s:\e[0m %s\n", recv_pack.data.send_name, recv_pack.data.mes);
+                printf("\t\t\e[1;34m%s:\e[0m %s\n", recv_pack.data.send_name, recv_pack.data.mes);
+            if((flag == 0) || (flag == 2) || (flag == 3) || (flag == 6))
+                pthread_cond_signal(&cond);           
             break;
 
         case CHAT_MANY:
             flag = recv_pack.data.mes[0] - '0';
             if(flag == 0)
+            {
                 printf("\n\t\t该群不存在!\n");
+                ffflag = 1;
+            }
             else if(flag == 1)
             {
                 printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
@@ -333,12 +387,11 @@ void *get_back(void *arg)
             else if(flag == 2)
                 printf("\n\t\t\e[1;33m群%s有新消息\e[0m\n",recv_pack.data.send_name);
             else if(flag == 6)
-            {
                 memcpy(&rec_info, &recv_pack.rec_info, sizeof(rec_info));
-                pthread_cond_signal(&cond);           
-            }
             else
-                printf("\n\t\t\e[1;34m%s:\e[0m %s\n", recv_pack.data.send_name, recv_pack.data.mes);
+                printf("\t\t\e[1;34m%s:\e[0m %s\n", recv_pack.data.send_name, recv_pack.data.mes);
+            if((flag == 0) || (flag == 6))
+                pthread_cond_signal(&cond);           
             break;
 
         case CHECK_MES_FRI:
@@ -524,8 +577,7 @@ int login()
     printf("\t\t请输入账号密码：");
     getpasswd(login_passwd, 18);
     set_disp_mode(STDIN_FILENO,1);
-    getchar();
-
+    system("clear");
     send_pack(flag, login_name, "server", login_passwd);
     if(recv(sock_fd, &recv_login, sizeof(PACK), MSG_WAITALL) < 0)
         my_err("recv", __LINE__);
@@ -726,12 +778,19 @@ void chat_one()
     int i = 0;
     memset(mes, 0, sizeof(mes));
     memset(&rec_info, 0, sizeof(rec_info));
+    rec_info[0].message[0] = '0';
     pthread_mutex_lock(&mutex);
     printf("\n\t\t你想要和谁聊天呢? ");
     scanf("%s",chat_name);
     mes[0] = '1';
     send_pack(flag, user, chat_name, mes);
     pthread_cond_wait(&cond, &mutex);
+    if(ffflag == 1)
+    {
+        ffflag = 0;
+        pthread_mutex_unlock(&mutex);
+        return;
+    }
     printf("\n\t\t\e[1;34m***********Message***********\e[0m\n");
     if(rec_info[0].message[0] == '0')
         printf("\t\t暂无未读消息\n");
@@ -817,7 +876,7 @@ void send_file(char *file_name)
             //printf("%d\t%d\t%d\n", length, n, m);
             bzero(send_file.file.mes, MAX_FILE);
             printf("\t\t\e[1;35m发送中...\e[0m\n");
-            //pthread_cond_wait(&cond, &mutex);
+            pthread_cond_wait(&cond, &mutex);
         }
         //printf("sum:%d   length:%d ", sum, length) ;
     }
@@ -1015,7 +1074,6 @@ void add_grp()
     printf("\t\t你想要加入的群名称：");
     scanf("%s",grp_add);
     send_pack(flag, user, "server", grp_add);
-    pthread_cond_wait(&cond, &mutex);
     pthread_mutex_unlock(&mutex);
 }
 
@@ -1127,12 +1185,20 @@ void chat_many()
     int i = 0;
     memset(mes, 0, sizeof(mes));
     memset(&rec_info, 0, sizeof(rec_info));
+    rec_info[0].message[0] = '0';
     pthread_mutex_lock(&mutex);
     printf("\n\t\t你想要在那个群中聊天呢? ");
     scanf("%s",chat_name);
     mes[0] = '1';
     send_pack(flag, user, chat_name, mes);
     pthread_cond_wait(&cond, &mutex);
+    if(ffflag == 1)
+    {
+        ffflag = 0;
+        pthread_mutex_unlock(&mutex);
+        return;
+    }
+    
     printf("\n\t\t\e[1;34m***********Message***********\e[0m\n");
     if(rec_info[0].message[0] == '0')
         printf("\t\t暂无消息\n");
@@ -1148,7 +1214,7 @@ void chat_many()
     do
     {
         memset(mes, 0, sizeof(mes));
-        printf("\t\t\e[1;34m%s:\e[0m ", user);
+        //printf("\t\t\e[1;34m%s:\e[0m ", user);
         scanf("%s", mes);
         send_pack(flag, user, chat_name, mes);
     }while(mes[0] != 'q');
@@ -1253,7 +1319,10 @@ void Menu_mes_box()
         {
             printf("\t\tNO.%d: %s", i + 1, mes_box[i]);
             scanf("%s", ch);
-            send_pack(mes_box_inc[i], user, name[i], ch);
+            if(mes_box_inc[i] == ADD_GRP)
+                send_pack(mes_box_inc[i], grp_name, name[i], ch);
+            else
+                send_pack(mes_box_inc[i], user, name[i], ch);
         }
         else if(sign_ive[i] == ACTIVE)
             printf("\t\tNO.%d: %s\n", i + 1, mes_box[i]);
