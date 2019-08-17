@@ -53,22 +53,20 @@ void *recv_pack( void *fd )
 
 void deal_pack()
 {
-    int i, j;
+    int i;
     for ( i = 0; i < num_recv_pack; i++ ) {
         switch(recv_array[i].type) {
         case 2:
             add_friend(recv_array[i]);
             break;
         case 5:
-            j = i;
-            chat_one(recv_array[i], j);
+            chat_one(recv_array[i]);
             break;
         case 8:
             add_group(recv_array[i]);
             break;
         case 9:
-            j = i;
-            chat_group(recv_array[i], j);
+            chat_group(recv_array[i]);
             break;
         default:
             break;
