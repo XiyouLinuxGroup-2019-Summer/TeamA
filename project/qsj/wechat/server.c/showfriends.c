@@ -16,13 +16,13 @@ void showfriends(pack *recv)
         exit(0);  
     }
     while ((row = mysql_fetch_row(res))) {
-        if ( strcmp(recv->recv_name, row[0]) == 0 ) {
+        if ( strcmp(recv->send_name, row[0]) == 0 ) {
             flag = 1;
             break;
         }
     }
 
-    if ( flag != 0 ) {
+    if ( flag == 0 ) {
         strcpy(recv->message, "no this user");
         send(recv->send_fd, recv, sizeof(pack), 0);
     }

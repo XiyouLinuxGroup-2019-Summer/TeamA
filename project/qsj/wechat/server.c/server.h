@@ -46,7 +46,8 @@ typedef struct {
      int send_fd;           
      int recv_fd;           
      char message[256];     
- }pack;
+     char file[256];
+}pack;
 
 typedef struct Node{
     int fd;
@@ -82,5 +83,6 @@ int search( node *Head, char *nam );
 void showfriends(pack *recv); 
 void creategroup(pack *recv);
 void addgroup(pack *recv);
+void sendfile(pack *recv);
 void inviteperson(pack *recv);
 void chatone(pack *recv);

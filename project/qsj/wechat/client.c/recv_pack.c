@@ -9,7 +9,7 @@ void *recv_pack( void *fd )
             my_err("recv",__LINE__);
        
         if ( pack_t.type == 3 )
-            add_friend(pack_t);
+            delete_friend(pack_t);
         if ( pack_t.type == 4 )
             show_friends(pack_t);
         if ( pack_t.type == 2 ) {
@@ -46,7 +46,8 @@ void *recv_pack( void *fd )
                 printf("you have a new group message!\n");
             }
         }
-
+        if ( pack_t.type == 10 )
+            send_file(pack_t);
     }
 }
 

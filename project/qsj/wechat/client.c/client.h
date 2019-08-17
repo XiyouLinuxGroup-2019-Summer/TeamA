@@ -7,6 +7,7 @@
 #include <termios.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -24,6 +25,7 @@ typedef struct {
     int send_fd;
     int recv_fd;
     char message[256];
+    char file[256];
 }pack;
 
 int conn_fd;
@@ -57,4 +59,6 @@ void add_group( pack pack_t );
 void chat_one( pack pack_t, int i );
 void addgroup();
 void chatgroup();
+void sendfile();
+void send_file(pack pack_t);
 void chat_group(pack pack_t, int i);
