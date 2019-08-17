@@ -76,6 +76,7 @@ void check_mes_fri();   //查看与好友聊天记录
 void check_mes_grp();   //查看群组聊天记录
 void send_pack(int type, char *send_name, char *recv_name, char *mes);
 int get_file_size(char *send_file_name); //得到文件大小
+char *s_gets(char *s, int n);
 int set_disp_mode(int fd,int option);
 int getpasswd(char* passwd, int size);
 
@@ -356,7 +357,10 @@ void *get_back(void *arg)
                 sign++;
             }
             else if(flag == 2)
+            {
                 printf("\n\t\t该用户不在线!\n");
+                pthread_cond_signal(&cond);           
+            }
             else if(flag == 3)
             {
                 printf("\n\t\t该好友已被屏蔽!\n");
@@ -814,17 +818,17 @@ void chat_one()
         }
     }
     printf("\n\t\t\e[1;33m按q退出聊天\e[0m\n");
+    getchar();
     do
     {
         memset(mes, 0, sizeof(mes));
         printf("\t\t\e[1;34m%s:\e[0m ", user);
-        scanf("%s", mes);
-        //scanf("%[^\n]", mes);
+        //scanf("%s", mes);
+        scanf("%[^\n]", mes);
+        getchar();
         send_pack(flag, user, chat_name, mes);
     }while(strcmp(mes, "q") != 0);
 
-    mes[0] = 'q';
-    send_pack(flag, user, "server", mes);
     pthread_mutex_unlock(&mutex);
 }
 
@@ -1197,15 +1201,16 @@ void chat_many()
         }
     }
     printf("\n\t\t\e[1;33m按q退出群聊\e[0m\n");
+    getchar();
     do
     {
         memset(mes, 0, sizeof(mes));
-        scanf("%s", mes);
+        //scanf("%s", mes);
+        scanf("%[^\n]", mes);
+        getchar();
         send_pack(flag, user, chat_name, mes);
     }while(strcmp(mes, "q") != 0);
 
-    mes[0] = 'q';
-    send_pack(flag, user, "server", mes);
     pthread_mutex_unlock(&mutex);
 }
 
@@ -1328,6 +1333,24 @@ void send_pack(int type, char *send_name, char *recv_name, char *mes)
     strcpy(pack_send.data.mes, mes);
     if(send(sock_fd, &pack_send, sizeof(PACK), 0) < 0)
         my_err("send",__LINE__);
+}
+
+char *s_gets(char *s, int n)
+{
+    char *ss;
+    int i = 0;
+    ss = fgets(s, n, stdin);
+    if(ss)
+    {
+        while(s[i] != '\n' && s[i] != '\0')
+            i++;
+        if(s[i] == '\n')
+            s[i] = '\0';
+        else
+            while(getchar() != '\n')
+                continue;
+    }
+    return ss;
 }
 
 int set_disp_mode(int fd,int option)

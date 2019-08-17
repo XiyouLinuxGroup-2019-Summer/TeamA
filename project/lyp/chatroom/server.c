@@ -1361,6 +1361,7 @@ void check_mem_grp(PACK *recv_pack)
 //私聊
 void chat_one(PACK *recv_pack)
 {
+    printf("111\n");
     int flag = CHAT_ONE;
     char ch[5];
     int fd = recv_pack->data.send_fd;
@@ -1373,11 +1374,12 @@ void chat_one(PACK *recv_pack)
     char query_str[1500];
     int rows;
     int fields;
-    RECORD_INFO rec_info[100];
+    RECORD_INFO rec_info[55];
     int i = 0,j;
     
     User *t = pHead;
     Relation *q = pStart;
+    Recordinfo *p = pRec;
     int flag_2 = 0;
     int flag_2_2 = 0;
 
@@ -1443,9 +1445,16 @@ void chat_one(PACK *recv_pack)
             fields = mysql_num_fields(res);
             while(row = mysql_fetch_row(res))
             {
+                printf("%s\t%s\t%s\n", row[0], row[1], row[2]);
                 strcpy(pNew->name1, row[0]);
                 strcpy(pNew->name2, row[1]);
                 strcpy(pNew->message, row[2]);
+                printf("%s\t%s\t%s\n", row[0], row[1], row[2]);
+                while(p)
+                {
+                    printf("%s\t%s\t%s\n", p->name1, p->name2, p->message);
+                    p = p->next;
+                }
                 Insert_RC(pNew);
                 memset(query_str, 0, strlen(query_str));
                 sprintf(query_str, "insert into recordinfo values('%s', '%s', '%s')", row[0], row[1], row[2]);
@@ -1518,13 +1527,16 @@ void chat_one(PACK *recv_pack)
                     memset(query_str, 0, strlen(query_str));
                     sprintf(query_str, "insert into recordinfo values('%s', '%s', '%s')", recv_pack->data.send_name, recv_pack->data.recv_name, recv_pack->data.mes);
                     mysql_real_query(&mysql, query_str, strlen(query_str));
-
+                    
+                    printf("%s\t%s\n", recv_pack->data.send_name, recv_pack->data.recv_name);
+                    memset(ss, 0, MAX_CHAR);
                     strcpy(ss,recv_pack->data.recv_name);
                     strcpy(recv_pack->data.recv_name, recv_pack->data.send_name);
                     time(&now);
                     str = ctime(&now);
                     str[strlen(str) - 1] = '\0';
                     memcpy(recv_pack->data.send_name, str, strlen(str));
+                    printf("%s\t%s\n", recv_pack->data.send_name, recv_pack->data.recv_name);
                     //strcpy(recv_pack->data.send_name, ss);
                     send_more(fd, flag, recv_pack, recv_pack->data.mes);
                     return;
