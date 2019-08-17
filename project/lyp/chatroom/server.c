@@ -1227,6 +1227,7 @@ void kick_grp(PACK *recv_pack)
     int flag_3 = 0;
     int flag_3_3 = 0;
     int flag_3_3_3 = 0;
+    int flag_3_3_3_3 = 0;
     while(q)
     {
         if(strcmp(q->name2, recv_pack->data.recv_name) == 0)
@@ -1258,8 +1259,19 @@ void kick_grp(PACK *recv_pack)
         }
         q = q->next;
     }
+    
+    q = pStart;
+    while(q)
+    {
+        if(strcmp(q->name1, recv_pack->data.mes) == 0 && (q->statu_s == GRP))
+        {
+            flag_3_3_3_3 = 1;
+            break;
+        }
+        q = q->next;
+    }
 
-    if(flag_3 == 1 && flag_3_3 == 1 && flag_3_3_3 == 1)
+    if(flag_3 == 1 && flag_3_3 == 1 && flag_3_3_3 == 1 && flag_3_3_3_3 == 1)
     {
         ch[0] = '1';
         Delete_R(q);
@@ -1282,8 +1294,10 @@ void kick_grp(PACK *recv_pack)
         sprintf(query_str, "delete from relationinfo where name1='%s' and name2='%s'", recv_pack->data.mes, recv_pack->data.recv_name);
         mysql_real_query(&mysql, query_str, strlen(query_str));
     }
-    else if(flag_3 == 0 && flag_3_3 == 1 && flag_3_3_3 == 1)
+    else if(flag_3 == 0 && flag_3_3 == 1 && flag_3_3_3 == 1 && flag_3_3_3_3 == 1)
         ch[0] = '2';
+    else if(flag_3_3_3_3 == 0)
+        ch[0] = '4';
     else if(flag_3_3_3 == 0)
         ch[0] = '3';
     else if(flag_3_3 == 0)
@@ -1367,7 +1381,7 @@ void chat_one(PACK *recv_pack)
 
     Recordinfo *pNew = (Recordinfo *)malloc(sizeof(Recordinfo));
 
-    if(recv_pack->data.mes[0] == '0')
+    if(strcmp(recv_pack->data.mes, "q") == 0)
     {
         while(t)
         {
@@ -1912,7 +1926,7 @@ void send_file(PACK *recv_pack)
         printf("发送成功!\n");
         printf("%d\t%d\n", fd, fd2);
         send_more(fd2, flag, recv_pack, "2936");
-        //remove(file.file_name[i]);
+        remove(file.file_name[i]);
         file.file_send_name[i][0] = '\0';
         close(fp);
     }
