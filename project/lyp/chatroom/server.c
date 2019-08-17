@@ -168,6 +168,7 @@ int main()
     memset(&serv_addr,0,len);
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(SERV_PORT);
+    //serv_addr.sin_addr.s_addr = inet_addr("192.168.3.15");
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     //将套接字绑定到本地端口
@@ -211,10 +212,12 @@ int main()
                 ev.data.fd = conn_fd;               //设置与要处理事件相关的文件描述符
                 ev.events = EPOLLIN;                //设置要处理的事件类型
                 epoll_ctl(epfd, EPOLL_CTL_ADD, conn_fd, &ev);   //注册epoll事件
+                continue;
             }
             else if(events[i].events & EPOLLIN)
             {
-                ret = recv(events[i].data.fd, &recv_t, sizeof(PACK), 0);
+                ret = recv(events[i].data.fd, &recv_t, sizeof(PACK), MSG_WAITALL);
+                printf("ret = %d\n", ret);
                 recv_t.data.send_fd = events[i].data.fd;
 
                 if(ret < 0)
@@ -240,7 +243,8 @@ int main()
                     close(events[i].data.fd);
                     continue;
                 }
-                
+                //if(recv_t.type == 0)
+                  //  continue;
                 //输出收到的包信息
                 printf("\n\e[1;34m****PACK****\e[0m\n");
                 printf("\e[1;34m*\e[0m type      : %d\n", recv_t.type);
@@ -521,7 +525,14 @@ void registe(PACK *recv_pack)
         strcpy(pNew->passwd, recv_pack->data.mes);
         pNew->statu_s = OFFLINE;
         Insert(pNew);
-
+        /*
+        t = pHead;
+        while(t)
+        {
+            printf("%s\t%s\t%d\n", t->name, t->passwd, t->statu_s);
+            t = t->next;
+        }
+        */
         memset(query_str, 0, strlen(query_str));
         sprintf(query_str, "insert into userinfo values('%s', '%s')", recv_pack->data.send_name, recv_pack->data.mes);
         mysql_real_query(&mysql, query_str, strlen(query_str));
@@ -532,8 +543,6 @@ void registe(PACK *recv_pack)
     
     ch[1] = '\0';
     send_pack(fd, recv_pack, ch);
-    free(pNew);
-    pNew = NULL;
 }
 
 //注册——加入链表
@@ -579,23 +588,45 @@ void login(PACK *recv_pack)
             ch[0] = '2';
     }
     ch[1] = '\0';
-    
     send_pack(fd, recv_pack, ch);
     
     for(i = 0; i < sign; i++)
     {
-        if((ch[0] == '1') && strcmp(recv_pack->data.send_name, Mex_Box[i].data.send_name) == 0)
+        //私聊
+        if((ch[0] == '1') && strcmp(recv_pack->data.send_name, Mex_Box[i].data.recv_name) == 0 && (Mex_Box[i].type == CHAT_ONE))
+        {
+            send_more(fd, CHAT_ONE, &Mex_Box[i], "1");
+            book++;
+        }
+        //群聊
+        if((ch[0] == '1') && strcmp(recv_pack->data.send_name, Mex_Box[i].data.send_name) == 0 && (Mex_Box[i].type == CHAT_MANY))
         {
             send_more(fd, CHAT_MANY, &Mex_Box[i], "2");
             book++;
         }
-        if((ch[0] == '1') && strcmp(recv_pack->data.send_name, Mex_Box[i].data.recv_name) == 0)
+        //加好友
+        if((ch[0] == '1') && strcmp(recv_pack->data.send_name, Mex_Box[i].data.recv_name) == 0 && (Mex_Box[i].type == ADD_FRI))
         {
             //开启线程执行离线任务
             pool_add(Menu, (void *)&Mex_Box[i]);  
             //memset(&Mex_Box[i], 0, sizeof(PACK));
             book++;
         }
+        //加群
+        if((ch[0] == '1') && strcmp(recv_pack->data.send_name, Mex_Box[i].data.send_name) == 0 && (Mex_Box[i].type == ADD_GRP))
+        {
+            //开启线程执行离线任务
+            pool_add(Menu, (void *)&Mex_Box[i]);  
+            //memset(&Mex_Box[i], 0, sizeof(PACK));
+            book++;
+        }
+        //设置管理员/踢人
+        if((ch[0] == '1') && strcmp(recv_pack->data.send_name, Mex_Box[i].data.mes) == 0)
+        {
+            send_more(fd, Mex_Box[i].type, &Mex_Box[i], "6");
+            book++;
+        }
+        //发文件
         if((ch[0] == '1') && strcmp(recv_pack->data.recv_name, Mex_Box[i].data.recv_name) == 0 && strcmp(Mex_Box[i].data.mes, "13nb") == 0)
         {
             pool_add(Menu, (void *)&Mex_Box[i]);
@@ -919,20 +950,61 @@ void cre_grp(PACK *recv_pack)
 //加群
 void add_grp(PACK *recv_pack)
 {
-    char query_str[1000];
+    char query_str[15000];
 
     int flag = ADD_GRP;
     int fd = recv_pack->data.send_fd;
     char ch[5];
 
+    User *t = pHead;
     Relation *q = pStart;
     int flag_3 = 0;
     Relation *pNew = (Relation *)malloc(sizeof(Relation));
+    if(strcmp(recv_pack->data.mes, "y") == 0)
+    {   
+        while(t)
+        {
+            if(strcmp(t->name, recv_pack->data.recv_name) == 0)
+            {
+                fd = t->fd;
+                break;
+            }
+            t = t->next;
+        }
+        ch[0] = '2';
+        printf("%s\n", recv_pack->file.mes);
+        strcpy(pNew->name1, recv_pack->data.recv_name);
+        strcpy(pNew->name2, recv_pack->data.send_name);
+        pNew->statu_s = GRP;
+        Insert_R(pNew);
+
+        memset(query_str, 0, strlen(query_str));
+        sprintf(query_str, "insert into relationinfo values('%s', '%s', %d)", recv_pack->data.recv_name, recv_pack->data.send_name, GRP);
+        mysql_real_query(&mysql, query_str, strlen(query_str));
+        send_more(fd, flag, recv_pack, ch);
+        return;
+    }
+    else if(strcmp(recv_pack->data.mes, "n") == 0)
+    {
+        while(t)
+        {
+            if(strcmp(t->name, recv_pack->data.recv_name) == 0)
+            {
+                fd = t->fd;
+                break;
+            }
+            t = t->next;
+        }
+        ch[0] = '3';
+        send_more(fd, flag, recv_pack, ch);
+        return;
+    }
     while(q)
     {
-        if(strcmp(q->name2, recv_pack->data.mes) == 0)
+        if(strcmp(q->name2, recv_pack->data.mes) == 0 && (q->statu_s == GRP_OWN))
         {
             flag_3 = 1;
+            strcpy(recv_pack->data.recv_name, q->name1);
             break;
         }
         q = q->next;
@@ -942,17 +1014,25 @@ void add_grp(PACK *recv_pack)
     {
         ch[0] = '0';
     }
-    else
+    else if(flag_3 == 1)
     {
-        ch[0] = '1';
-        strcpy(pNew->name1, recv_pack->data.send_name);
-        strcpy(pNew->name2, recv_pack->data.mes);
-        pNew->statu_s = GRP;
-        Insert_R(pNew);
-
-        memset(query_str, 0, strlen(query_str));
-        sprintf(query_str, "insert into relationinfo values('%s', '%s', %d)", recv_pack->data.send_name, recv_pack->data.mes, GRP);
-        mysql_real_query(&mysql, query_str, strlen(query_str));
+        t = pHead;
+        while(t)
+        {
+            if(strcmp(recv_pack->data.recv_name, t->name) == 0 && (t->statu_s != OFFLINE))
+            {
+                ch[0] = '1';
+                fd = t->fd;
+                strcpy(recv_pack->file.mes, recv_pack->data.mes);
+                break;
+            }
+            else if(strcmp(recv_pack->data.recv_name, t->name) == 0 && (t->statu_s == OFFLINE))
+            {
+                memcpy(&Mex_Box[sign++], recv_pack, sizeof(PACK));
+                break;
+            }
+            t = t->next;
+        }
     }
     send_more(fd, flag, recv_pack, ch);
 }
@@ -1054,7 +1134,8 @@ void set_grp_adm(PACK *recv_pack)
     int flag = SET_GRP_ADM;
     char ch[5];
     int fd = recv_pack->data.send_fd;
-
+    int fd2;
+    User *t = pHead;
     Relation *q = pStart;
     int flag_3 = 0;
     int flag_3_3 = 0;
@@ -1104,6 +1185,21 @@ void set_grp_adm(PACK *recv_pack)
             }
             q = q->next;
         }
+        while(t)
+        {
+            if(strcmp(t->name, recv_pack->data.mes) == 0 && (t->statu_s != OFFLINE))
+            {
+                fd2 = t->fd;
+                send_more(fd2, flag, recv_pack, "6");
+                return;
+            }
+            else if(strcmp(t->name, recv_pack->data.mes) == 0 && (t->statu_s == OFFLINE))
+            {
+                memcpy(&Mex_Box[sign++], recv_pack, sizeof(PACK));
+                return;
+            }
+            t = t->next;
+        }
         memset(query_str, 0, strlen(query_str));
         sprintf(query_str, "update relationinfo set status=%d where name1='%s' and name2='%s'", GRP_ADM, recv_pack->data.mes, recv_pack->data.recv_name);
         mysql_real_query(&mysql, query_str, strlen(query_str));
@@ -1125,7 +1221,8 @@ void kick_grp(PACK *recv_pack)
     int flag = KICK_GRP;
     char ch[5];
     int fd = recv_pack->data.send_fd;
-
+    int fd2;
+    User *t = pHead;
     Relation *q = pStart;
     int flag_3 = 0;
     int flag_3_3 = 0;
@@ -1166,7 +1263,21 @@ void kick_grp(PACK *recv_pack)
     {
         ch[0] = '1';
         Delete_R(q);
-
+        while(t)
+        {
+            if(strcmp(t->name, recv_pack->data.mes) == 0 && (t->statu_s != OFFLINE))
+            {
+                fd2 = t->fd;
+                send_more(fd2, flag, recv_pack, "6");
+                return;
+            }
+            else if(strcmp(t->name, recv_pack->data.mes) == 0 && (t->statu_s == OFFLINE))
+            {
+                memcpy(&Mex_Box[sign++], recv_pack, sizeof(PACK));
+                return;
+            }
+            t = t->next;
+        }
         memset(query_str, 0, strlen(query_str));
         sprintf(query_str, "delete from relationinfo where name1='%s' and name2='%s'", recv_pack->data.mes, recv_pack->data.recv_name);
         mysql_real_query(&mysql, query_str, strlen(query_str));
@@ -1372,7 +1483,7 @@ void chat_one(PACK *recv_pack)
             {
                 ch[0] = '2';
                 send_more(fd, flag, recv_pack, ch);
-                memcpy(&Mex_Box[sign++], recv_pack, sizeof(PACK));       
+                memcpy(&Mex_Box[sign++], recv_pack, sizeof(PACK));
             }
         }
         else
@@ -1437,6 +1548,7 @@ void chat_many(PACK *recv_pack)
     int rows;
     int fields;
     PACK recv_t;
+    recv_t.type = flag;
     RECORD_INFO rec_info[100];
     int i = 0,j = 0;
 
@@ -1480,7 +1592,7 @@ void chat_many(PACK *recv_pack)
     }
     else
     {
-        if(recv_pack->data.mes[0] == '1')
+        if(strcmp(recv_pack->data.mes, "1") == 0)
         {
             memset(query_str, 0, strlen(query_str));
             sprintf(query_str, "select * from recordinfo where name2='%s'", recv_pack->data.recv_name);
@@ -1572,7 +1684,7 @@ void chat_many(PACK *recv_pack)
             q = pStart;
             while(q)
             {
-                if(strcmp(q->name1, recv_pack->data.send_name) != 0 && strcmp(q->name2, recv_pack->data.recv_name) == 0 && (q->statu_s >= GRP))
+                if(strcmp(q->name2, recv_pack->data.recv_name) == 0 && (q->statu_s >= GRP))
                 {
                     t = pHead;
                     while(t)
@@ -1580,10 +1692,15 @@ void chat_many(PACK *recv_pack)
                         if(strcmp(q->name1, t->name) == 0 && strcmp(t->chat, recv_pack->data.recv_name) == 0 && (t->statu_s == MANY_CHAT))
                         {
                             fd = t->fd;
+                            bzero(ss, MAX_CHAR);
                             strcpy(ss,recv_pack->data.recv_name);
                             strcpy(recv_pack->data.recv_name, recv_pack->data.send_name);
                             strcpy(recv_pack->data.send_name, ss);
                             send_more(fd, flag, recv_pack, recv_pack->data.mes);
+                            bzero(ss, MAX_CHAR);
+                            strcpy(ss,recv_pack->data.recv_name);
+                            strcpy(recv_pack->data.recv_name, recv_pack->data.send_name);
+                            strcpy(recv_pack->data.send_name, ss);
                             break;
                         }
                         t = t->next;
@@ -1795,7 +1912,7 @@ void send_file(PACK *recv_pack)
         printf("发送成功!\n");
         printf("%d\t%d\n", fd, fd2);
         send_more(fd2, flag, recv_pack, "2936");
-        remove(file.file_name[i]);
+        //remove(file.file_name[i]);
         file.file_send_name[i][0] = '\0';
         close(fp);
     }
@@ -1834,13 +1951,15 @@ void send_pack(int fd, PACK *recv_pack, char *ch)
 {
     PACK pack_send;
     memcpy(&pack_send, recv_pack, sizeof(PACK));
-    
+    printf("%s\t%s\n", pack_send.data.recv_name, pack_send.data.send_name);
     strcpy(pack_send.data.recv_name, pack_send.data.send_name);
     strcpy(pack_send.data.send_name, "server");
     strcpy(pack_send.data.mes, ch);
+    printf("%s\t%s\n", pack_send.data.recv_name, pack_send.data.send_name);
+    //pack_send.data.mes[0] = ch[0];
+    printf("%s\n", pack_send.data.mes);
     pack_send.data.recv_fd = pack_send.data.send_fd;
     pack_send.data.send_fd = fd;
-
     if(send(fd, &pack_send, sizeof(PACK), 0) < 0)
         my_err("send", __LINE__);
 }

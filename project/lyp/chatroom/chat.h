@@ -11,7 +11,7 @@
 #define BUFSIZE 1024
 #define MAX_CHAR 100
 #define FRI_MAX 100
-#define MAX_FILE 30000
+#define MAX_FILE 10000
 
 typedef struct _user
 {

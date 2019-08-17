@@ -37,6 +37,10 @@ void *work( void *recv )
         break;
     case 10:
         sendfile(p);
+<<<<<<< HEAD
+=======
+        break;
+>>>>>>> df9f5e8c941a76df32cca99f112bc68a2c03cb9b
     default:
         break;
     }
