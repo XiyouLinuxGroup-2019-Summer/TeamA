@@ -356,11 +356,7 @@ void *get_back(void *arg)
                 sign++;
             }
             else if(flag == 2)
-            {
                 printf("\n\t\t该用户不在线!\n");
-                ffflag = 1;
-                pthread_cond_signal(&cond);           
-            }
             else if(flag == 3)
             {
                 printf("\n\t\t该好友已被屏蔽!\n");
@@ -373,7 +369,7 @@ void *get_back(void *arg)
                 pthread_cond_signal(&cond);           
             }
             else
-                printf("\n\t\t\e[1;34m%s:\e[0m %s\n", recv_pack.data.send_name, recv_pack.data.mes);
+                printf("\n\t\t\e[1;34m%s\n\t\t%s:\e[0m %s\n", recv_pack.data.recv_name, recv_pack.data.send_name, recv_pack.data.mes);
             break;
 
         case CHAT_MANY:
@@ -399,7 +395,7 @@ void *get_back(void *arg)
                 pthread_cond_signal(&cond);           
             }
             else
-                printf("\n\t\t\e[1;34m%s:\e[0m %s\n", recv_pack.data.send_name, recv_pack.data.mes);
+                printf("\n\t\t\e[1;34m%s\n\t\t%s:\e[0m %s\n", recv_pack.data.recv_name, recv_pack.data.send_name, recv_pack.data.mes);
             break;
 
         case CHECK_MES_FRI:
@@ -823,6 +819,7 @@ void chat_one()
         memset(mes, 0, sizeof(mes));
         printf("\t\t\e[1;34m%s:\e[0m ", user);
         scanf("%s", mes);
+        //scanf("%[^\n]", mes);
         send_pack(flag, user, chat_name, mes);
     }while(strcmp(mes, "q") != 0);
 

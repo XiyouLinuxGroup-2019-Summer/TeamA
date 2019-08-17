@@ -1365,6 +1365,8 @@ void chat_one(PACK *recv_pack)
     char ch[5];
     int fd = recv_pack->data.send_fd;
     char ss[MAX_CHAR];
+    time_t now;
+    char *str;
     
     MYSQL_RES *res = NULL;
     MYSQL_ROW row;
@@ -1373,7 +1375,7 @@ void chat_one(PACK *recv_pack)
     int fields;
     RECORD_INFO rec_info[100];
     int i = 0,j;
-
+    
     User *t = pHead;
     Relation *q = pStart;
     int flag_2 = 0;
@@ -1519,7 +1521,11 @@ void chat_one(PACK *recv_pack)
 
                     strcpy(ss,recv_pack->data.recv_name);
                     strcpy(recv_pack->data.recv_name, recv_pack->data.send_name);
-                    strcpy(recv_pack->data.send_name, ss);
+                    time(&now);
+                    str = ctime(&now);
+                    str[strlen(str) - 1] = '\0';
+                    memcpy(recv_pack->data.send_name, str, strlen(str));
+                    //strcpy(recv_pack->data.send_name, ss);
                     send_more(fd, flag, recv_pack, recv_pack->data.mes);
                     return;
                 }
@@ -1555,6 +1561,8 @@ void chat_many(PACK *recv_pack)
     char ch[5];
     int fd = recv_pack->data.send_fd;
     char ss[MAX_CHAR];
+    time_t now;
+    char *str;
     
     MYSQL_RES *res = NULL;
     MYSQL_ROW row;
@@ -1709,8 +1717,12 @@ void chat_many(PACK *recv_pack)
                             bzero(ss, MAX_CHAR);
                             strcpy(ss,recv_pack->data.recv_name);
                             strcpy(recv_pack->data.recv_name, recv_pack->data.send_name);
-                            strcpy(recv_pack->data.send_name, ss);
+                            time(&now);
+                            str = ctime(&now);
+                            str[strlen(str) - 1] = '\0';
+                            memcpy(recv_pack->data.send_name, str, strlen(str));
                             send_more(fd, flag, recv_pack, recv_pack->data.mes);
+                            strcpy(recv_pack->data.send_name, ss);
                             bzero(ss, MAX_CHAR);
                             strcpy(ss,recv_pack->data.recv_name);
                             strcpy(recv_pack->data.recv_name, recv_pack->data.send_name);
