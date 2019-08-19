@@ -65,6 +65,7 @@ int function()
             break;
         case 12:
             kickperson();
+            break;
         case 13:
             quitgroup();
             break;

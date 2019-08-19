@@ -5,7 +5,8 @@ void *recv_pack( void *fd )
     int sockfd = *(int *)fd;
     pack pack_t;
     while ( 1 ) {
-        if(recv(sockfd,&pack_t,sizeof(pack),0) <= 0) 
+        bzero(&pack_t, sizeof(pack_t)) ;
+        if(recv(sockfd,&pack_t,sizeof(pack),MSG_WAITALL) <= 0) 
             my_err("recv",__LINE__);
        
         if ( pack_t.type == 3 )

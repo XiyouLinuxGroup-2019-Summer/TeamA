@@ -10,7 +10,7 @@ int main()
     memset(&addr, 0, sizeof(struct sockaddr_in));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(PORT);
-    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    addr.sin_addr.s_addr = inet_addr("192.168.3.11");
     if ( connect(conn_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr)) < 0 )
         my_err("connect", __LINE__);
     if ( menu() == 0 ) {

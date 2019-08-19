@@ -19,6 +19,10 @@ void showgroups(pack *recv)
         if ( strcmp(row[1], recv->send_name)==0 ) {
             strcat(recv->message, row[0]);
             strcat(recv->message, ":\n");
+            strcat(recv->message, row[1]);
+            strcat(recv->message, " online ");
+            strcat(recv->message, row[2]);
+            strcat(recv->message, "\n");
             if (mysql_real_query(&mysql, "select * from group_info", (unsigned long)strlen("select * from group_info"))) {  
                 printf("mysql_real_query select failure!\n"); 
                 exit(0);  
@@ -32,10 +36,12 @@ void showgroups(pack *recv)
                 if ( strcmp(row1[0], row[0])==0 && strcmp(row1[1], row[1])!=0 ) {
                     strcat(recv->message, row1[1]);
                     if ( search(head, row1[1]) != 0 ) {
-                        strcat(recv->message, " online\n");
+                        strcat(recv->message, " online ");
                     }
                     else 
-                        strcat(recv->message, " downline\n");
+                        strcat(recv->message, " downline ");
+                    strcat(recv->message, row1[2]);
+                    strcat(recv->message, "\n");
                 }
             }
         }

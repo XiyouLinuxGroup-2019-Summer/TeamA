@@ -45,7 +45,8 @@ int main()
             }
 
             else if ( events[i].events & EPOLLIN ) {
-                n = recv(events[i].data.fd,&recv_t,sizeof(pack), 0) ;
+                bzero(&recv_t, sizeof(pack));
+                n = recv(events[i].data.fd,&recv_t,sizeof(pack), MSG_WAITALL) ;
                 if(n < 0)
                 {
                         close(events[i].data.fd);
