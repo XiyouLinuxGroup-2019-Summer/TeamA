@@ -148,9 +148,10 @@ void *get_back(void *arg)
         PACK recv_pack;
         int i = 0;
         int fd;
-        if(recv(sock_fd, &recv_pack, sizeof(PACK), MSG_WAITALL)< 0)
+        int ret = recv(sock_fd, &recv_pack, sizeof(PACK), MSG_WAITALL);
+        if(ret < 0)
             my_err("recv", __LINE__);
- 
+
         switch(recv_pack.type)
         {
         case CHECK_FRI:
@@ -353,7 +354,7 @@ void *get_back(void *arg)
             {
                 printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
                 sign_ive[sign] = ACTIVE;
-                sprintf(mes_box[sign], "好友%s想要与你一起探讨人生...", recv_pack.data.recv_name);
+                sprintf(mes_box[sign], "好友%s想要与你一起探讨人生...", recv_pack.data.send_name);
                 sign++;
             }
             else if(flag == 2)
@@ -452,8 +453,10 @@ void *get_back(void *arg)
             {
                 printf("\t\t该用户不是你的好友,请先添加好友!\n");
                 ffflag = 1;
+                pthread_cond_signal(&cond);
             }
-            pthread_cond_signal(&cond);
+            if(flag == 1)
+                pthread_cond_signal(&cond);
             break;
 
         case RECV_FILE:
@@ -480,16 +483,26 @@ void *get_back(void *arg)
                 printf("\n\t\t%s已同意接收文件\n", recv_pack.data.recv_name);
             else if(strcmp(recv_pack.data.mes, "2936") == 0)
                 printf("\n\t\t%s已接收完毕\n", recv_pack.data.recv_name);
+            else if(strcmp(recv_pack.data.mes, "4587") == 0)
+                printf("\n\t\t接收完毕!\n");
             else 
             {
-                pthread_mutex_lock(&mutex_g);
+                //pthread_mutex_lock(&mutex_g);
                 recv_file(&recv_pack);
-                pthread_mutex_unlock(&mutex_g);
+                //pthread_mutex_unlock(&mutex_g);
             }
             break;
 
         default:
             break;
+        }
+
+        if(ret == 0)
+        {
+            printf("\n\t\t\e[1;31m服务器已挂...\e[0m\n");
+            printf("\t\t\e[1;31m准备退出...\e[0m\n");
+            printf("\t\t\e[1;31m已退出!\e[0m\n");
+            exit(1);
         }
     }
 }
@@ -497,6 +510,7 @@ void *get_back(void *arg)
 //登陆菜单
 int login_menu()
 {
+    int flag;
     char choice_s[100];
     int choice;
     do
@@ -526,6 +540,8 @@ int login_menu()
         }
         
     }while(choice != 0);
+    flag = EXIT;
+    send_pack(flag, user, "server", " ");
     return 0;
 }
 
@@ -853,6 +869,12 @@ void send_file()
     scanf("%s", file_name);
     printf("\t\t你想要发送的文件名称：");
     scanf("%s",send_file_name);
+    sum = get_file_size(send_file_name);
+    if(sum == -1)
+    {
+        pthread_mutex_unlock(&mutex);
+        return;
+    }
     send_pack(flag, send_file_name, file_name, "1699597");
     pthread_cond_wait(&cond, &mutex);
     if(ffflag == 1)
@@ -864,7 +886,7 @@ void send_file()
     
     strcpy(send_file.data.send_name, user);
     strcpy(send_file.data.recv_name, file_name);
-    sum = get_file_size(send_file_name);
+    
     printf("\t\t总大小：%d\n", sum);
     fd = open(send_file_name, O_RDONLY);
     if(fd == -1)
@@ -879,7 +901,7 @@ void send_file()
             
             bzero(send_file.file.mes, MAX_FILE);
             printf("\t\t\e[1;35m发送中...\e[0m\n");
-            pthread_cond_wait(&cond, &mutex);
+            //pthread_cond_wait(&cond, &mutex);
         }
     }
     printf("\t\t\e[1;35m发送成功!\e[0m\n");
@@ -894,8 +916,8 @@ int get_file_size(char *send_file_name)
     int len;
     if((fd = open(send_file_name,O_RDONLY)) == -1)
     {
-        my_err("open",__LINE__);
-        return 0;
+        printf("\n\t\t该文件不存在,请重新选择!\n");
+        return -1;
     }
     len = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);

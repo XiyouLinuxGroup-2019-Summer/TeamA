@@ -231,7 +231,7 @@ int main()
                     ev.data.fd = events[i].data.fd;
                     while(t)
                     {
-                        if(strcmp(t->name, recv_t.data.send_name) == 0)
+                        if(t->fd == ev.data.fd)
                         {
                             t->statu_s = OFFLINE;
                             break;
@@ -627,7 +627,7 @@ void login(PACK *recv_pack)
             book++;
         }
         //发文件
-        if((ch[0] == '1') && strcmp(recv_pack->data.recv_name, Mex_Box[i].data.recv_name) == 0 && strcmp(Mex_Box[i].data.mes, "13nb") == 0)
+        if((ch[0] == '1') && strcmp(recv_pack->data.send_name, Mex_Box[i].data.recv_name) == 0 && strcmp(Mex_Box[i].data.mes, "13nb") == 0)
         {
             pool_add(Menu, (void *)&Mex_Box[i]);
             book++;
@@ -1445,11 +1445,9 @@ void chat_one(PACK *recv_pack)
             fields = mysql_num_fields(res);
             while(row = mysql_fetch_row(res))
             {
-                printf("%s\t%s\t%s\n", row[0], row[1], row[2]);
                 strcpy(pNew->name1, row[0]);
                 strcpy(pNew->name2, row[1]);
                 strcpy(pNew->message, row[2]);
-                printf("%s\t%s\t%s\n", row[0], row[1], row[2]);
                 while(p)
                 {
                     printf("%s\t%s\t%s\n", p->name1, p->name2, p->message);
@@ -1528,7 +1526,6 @@ void chat_one(PACK *recv_pack)
                     sprintf(query_str, "insert into recordinfo values('%s', '%s', '%s')", recv_pack->data.send_name, recv_pack->data.recv_name, recv_pack->data.mes);
                     mysql_real_query(&mysql, query_str, strlen(query_str));
                     
-                    printf("%s\t%s\n", recv_pack->data.send_name, recv_pack->data.recv_name);
                     memset(ss, 0, MAX_CHAR);
                     strcpy(ss,recv_pack->data.recv_name);
                     strcpy(recv_pack->data.recv_name, recv_pack->data.send_name);
@@ -1536,7 +1533,6 @@ void chat_one(PACK *recv_pack)
                     str = ctime(&now);
                     str[strlen(str) - 1] = '\0';
                     memcpy(recv_pack->data.send_name, str, strlen(str));
-                    printf("%s\t%s\n", recv_pack->data.send_name, recv_pack->data.recv_name);
                     //strcpy(recv_pack->data.send_name, ss);
                     send_more(fd, flag, recv_pack, recv_pack->data.mes);
                     return;
@@ -1844,6 +1840,7 @@ void recv_file(PACK *recv_pack)
     int length = 0;
     int i = 0;
     char mes[MAX_CHAR * 3 + 1];
+    char *name;
     bzero(mes, MAX_CHAR * 3 + 1);
     int fp;
     User *t = pHead;
@@ -1862,12 +1859,24 @@ void recv_file(PACK *recv_pack)
         if(flag_2 == 1)
         {
             file.file_name[file.sign_file][0] = '_';
-            strcat(file.file_name[file.sign_file],recv_pack->data. send_name);
+            for(i = 0; i < strlen(recv_pack->data.send_name); i++)
+            {
+                if(recv_pack->data.send_name[i] == '/')
+                {
+                    name = strrchr(recv_pack->data.send_name, '/');
+                    name++;
+                    strcat(file.file_name[file.sign_file],name);
+                    break;
+                }
+            }
+            if(i == strlen(recv_pack->data.send_name))
+                strcat(file.file_name[file.sign_file],recv_pack->data.send_name);
+
             strcpy(file.file_send_name[file.sign_file], recv_pack->data.recv_name);
             fp = creat(file.file_name[file.sign_file], S_IRWXU);
             file.sign_file++;
             close(fp);
-            send_more(fd, flag, recv_pack, "");
+            send_more(fd, flag, recv_pack, "1");
         }
         else 
             send_more(fd, flag, recv_pack, "0");
@@ -1898,11 +1907,10 @@ void recv_file(PACK *recv_pack)
                 break;
             }
         }
-        printf("%s\n", file.file_name[i]);
         if(write(fp, recv_pack->file.mes, recv_pack->file.size) < 0)
             my_err("write", __LINE__);
         close(fp);
-        send_more(fd, flag, recv_pack, "");
+        //send_more(fd, flag, recv_pack, "");
     }
 }
 
@@ -1948,7 +1956,6 @@ void send_file(PACK *recv_pack)
         strcpy(recv_pack->data.recv_name, file.file_name[i]);
         send_more(fd, flag, recv_pack, "1699597");
 
-        printf("%d\t%d\n", fd, fd2);
         strcpy(send_file.data.send_name, recv_pack->data.recv_name);
         strcpy(send_file.data.recv_name, recv_pack->data.send_name);
         fp = open(file.file_name[i], O_RDONLY);
@@ -1964,7 +1971,7 @@ void send_file(PACK *recv_pack)
             //bzero(mes, MAX_CHAR * 3 + 1);
         }
         printf("发送成功!\n");
-        printf("%d\t%d\n", fd, fd2);
+        send_more(fd, flag, recv_pack, "4587");
         send_more(fd2, flag, recv_pack, "2936");
         remove(file.file_name[i]);
         file.file_send_name[i][0] = '\0';
