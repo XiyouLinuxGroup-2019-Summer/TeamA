@@ -168,8 +168,8 @@ int main()
     memset(&serv_addr,0,len);
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(SERV_PORT);
-    //serv_addr.sin_addr.s_addr = inet_addr("192.168.3.15");
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_addr.sin_addr.s_addr = inet_addr("192.168.3.15");
+    //serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     //将套接字绑定到本地端口
     if(bind(sock_fd,(struct sockaddr *)&serv_addr,len) < 0)
@@ -1850,12 +1850,27 @@ void recv_file(PACK *recv_pack)
     int flag_2 = 0;
     if(strcmp(recv_pack->data.mes,"1699597") == 0)
     {
-        file.file_name[file.sign_file][0] = '_';
-        strcat(file.file_name[file.sign_file],recv_pack->data. send_name);
-        strcpy(file.file_send_name[file.sign_file], recv_pack->data.recv_name);
-        fp = creat(file.file_name[file.sign_file], S_IRWXU);
-        file.sign_file++;
-        close(fp);
+        while(t)
+        {
+            if(strcmp(t->name, recv_pack->data.recv_name) == 0)
+            {
+                flag_2 = 1;
+                break;
+            }
+            t = t->next;
+        }
+        if(flag_2 == 1)
+        {
+            file.file_name[file.sign_file][0] = '_';
+            strcat(file.file_name[file.sign_file],recv_pack->data. send_name);
+            strcpy(file.file_send_name[file.sign_file], recv_pack->data.recv_name);
+            fp = creat(file.file_name[file.sign_file], S_IRWXU);
+            file.sign_file++;
+            close(fp);
+            send_more(fd, flag, recv_pack, "");
+        }
+        else 
+            send_more(fd, flag, recv_pack, "0");
     }
     else if(strcmp(recv_pack->data.mes, "13nb") == 0)
     {
@@ -1883,11 +1898,12 @@ void recv_file(PACK *recv_pack)
                 break;
             }
         }
+        printf("%s\n", file.file_name[i]);
         if(write(fp, recv_pack->file.mes, recv_pack->file.size) < 0)
             my_err("write", __LINE__);
         close(fp);
+        send_more(fd, flag, recv_pack, "");
     }
-    send_more(fd, flag, recv_pack, "");
 }
 
 //发送文件

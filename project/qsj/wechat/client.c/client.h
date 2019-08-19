@@ -55,6 +55,8 @@ void *recv_pack(void *fd);
 void addfriend();
 void creategroup();
 char *pas( char *s );
+void show_groups( pack pack_t );
+void showgroups();
 void add_friend(pack pack_t); 
 void sendfile();
 void send_file( pack pack_t );
@@ -69,11 +71,18 @@ void inviteperson();
 void add_group( pack pack_t );
 void chat_one( pack pack_t );
 void addgroup();
+void kickperson();
 void chatgroup();
 <<<<<<< HEAD
 void sendfile();
 void send_file(pack pack_t);
 void chat_group(pack pack_t, int i);
+<<<<<<< HEAD
 =======
 void chat_group(pack pack_t);
 >>>>>>> df9f5e8c941a76df32cca99f112bc68a2c03cb9b
+=======
+void kick_person( pack pack_t );
+void quit_group( pack pack_t );
+void quitgroup();
+>>>>>>> 86bc901a8348b09c58785771745bc406fdd32fa4

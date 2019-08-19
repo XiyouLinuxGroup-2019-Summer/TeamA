@@ -88,3 +88,6 @@ void addgroup(pack *recv);
 void sendfile(pack *recv);
 void inviteperson(pack *recv);
 void chatone(pack *recv);
+void showgroups(pack *recv);
+void kickperson(pack *recv);
+void quitgroup( pack *recv );

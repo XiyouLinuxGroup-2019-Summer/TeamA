@@ -108,8 +108,8 @@ int main(int argc, char *argv[])
     memset(&serv_addr,0,sizeof(struct sockaddr_in));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(SERV_PORT);
-    //serv_addr.sin_addr.s_addr = inet_addr("192.168.3.15");
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_addr.sin_addr.s_addr = inet_addr("192.168.3.15");
+    //serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     //创建TCP套接字
     sock_fd = socket(AF_INET,SOCK_STREAM,0);
@@ -447,7 +447,13 @@ void *get_back(void *arg)
             break;
 
         case SEND_FILE:
-                pthread_cond_signal(&cond);
+            flag = recv_pack.data.mes[0] - '0';
+            if(flag == 0)
+            {
+                printf("\t\t该用户不是你的好友,请先添加好友!\n");
+                ffflag = 1;
+            }
+            pthread_cond_signal(&cond);
             break;
 
         case RECV_FILE:
@@ -849,6 +855,12 @@ void send_file()
     scanf("%s",send_file_name);
     send_pack(flag, send_file_name, file_name, "1699597");
     pthread_cond_wait(&cond, &mutex);
+    if(ffflag == 1)
+    {
+        ffflag = 0;
+        pthread_mutex_unlock(&mutex);
+        return;
+    }
     
     strcpy(send_file.data.send_name, user);
     strcpy(send_file.data.recv_name, file_name);

@@ -17,7 +17,7 @@ void creategroup()
         scanf("%s", send_t.send_name);
         if (strcmp(send_t.send_name, "quit") == 0)
             break;
-        printf("please enter the status:\n");
+        printf("please enter the status:(2 or 3)\n");
         scanf("%d", &send_t.ans);
         send(conn_fd, &send_t, sizeof(pack), 0);
         sleep(1);
