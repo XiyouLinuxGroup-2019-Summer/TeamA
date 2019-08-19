@@ -257,6 +257,9 @@ int main()
                 
                 recv_pack = (PACK *)malloc(sizeof(PACK));
                 memcpy(recv_pack, &recv_t, sizeof(PACK));
+                
+                if(recv_pack->type == RECV_FILE)
+                    recv_file(recv_pack);
 
                 //开启线程
                 pool_add(Menu, (void *)recv_pack);        
@@ -467,9 +470,11 @@ void *Menu(void *recv_pack_t)
         check_mes_grp(recv_pack);
         break;
 
+    /*
     case RECV_FILE:
         recv_file(recv_pack);
         break;
+    */
 
     case SEND_FILE:
         send_file(recv_pack);
@@ -629,7 +634,7 @@ void login(PACK *recv_pack)
         //发文件
         if((ch[0] == '1') && strcmp(recv_pack->data.send_name, Mex_Box[i].data.recv_name) == 0 && strcmp(Mex_Box[i].data.mes, "13nb") == 0)
         {
-            pool_add(Menu, (void *)&Mex_Box[i]);
+            send_file(&Mex_Box[i]);
             book++;
         }
     }
@@ -1448,11 +1453,6 @@ void chat_one(PACK *recv_pack)
                 strcpy(pNew->name1, row[0]);
                 strcpy(pNew->name2, row[1]);
                 strcpy(pNew->message, row[2]);
-                while(p)
-                {
-                    printf("%s\t%s\t%s\n", p->name1, p->name2, p->message);
-                    p = p->next;
-                }
                 Insert_RC(pNew);
                 memset(query_str, 0, strlen(query_str));
                 sprintf(query_str, "insert into recordinfo values('%s', '%s', '%s')", row[0], row[1], row[2]);

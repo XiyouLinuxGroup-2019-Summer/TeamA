@@ -319,7 +319,7 @@ void *get_back(void *arg)
             else if(flag == 3)
                 printf("\n\t\t此用户不在群中!\n");
             else if(flag == 4)
-                printf("\n\t\t踢人失败,对方是群主/管理员!\n");
+                printf("\n\t\t踢人失败!\n");
             else if(flag == 6)
             {
                 printf("\n\t\t\e[1;33m您有新消息啦!\e[0m\n");
