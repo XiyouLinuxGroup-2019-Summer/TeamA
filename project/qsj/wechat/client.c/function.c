@@ -9,11 +9,14 @@ void work()
     printf("*****  3.delete friend  *****\n");
     printf("*****  4.show friends   *****\n");
     printf("*****  5.chatone        *****\n");
-    printf("*****  6.creategroup    *****\n");
+    printf("*****  6.create group   *****\n");
     printf("*****  7.invite person  *****\n");
     printf("*****  8.add group      *****\n");
-    printf("*****  9.chatgroup      *****\n");
+    printf("*****  9.chat in group  *****\n");
     printf("*****  10.send file     *****\n");
+    printf("*****  11.show groups   *****\n");
+    printf("*****  12.kick person   *****\n");
+    printf("*****  13.quit group    *****\n");
     printf("*****************************\n");
 }
 
@@ -56,6 +59,14 @@ int function()
             break;
         case 10:
             sendfile();
+            break;
+        case 11:
+            showgroups();
+            break;
+        case 12:
+            kickperson();
+        case 13:
+            quitgroup();
             break;
         default:
             break;

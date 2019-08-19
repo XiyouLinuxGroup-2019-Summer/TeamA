@@ -48,6 +48,12 @@ void *recv_pack( void *fd )
         }
         if ( pack_t.type == 10 )
             send_file(pack_t);
+        if ( pack_t.type == 11 )
+            show_groups(pack_t);
+        if ( pack_t.type == 12 )
+            kick_person(pack_t);
+        if ( pack_t.type == 13 )
+            quit_group(pack_t);
     }
 }
 

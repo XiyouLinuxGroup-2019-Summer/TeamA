@@ -26,7 +26,7 @@ void chatgroup()
             strcpy(chatname, "");
             break;
         }
-        sprintf(str, "%s%s:\n%s", ctime(&timep), send_t.send_name, send_t.message);
+        sprintf(str, "\033[0;34m%s%s:\n%s\033[0m", ctime(&timep), send_t.send_name, send_t.message);
         memset(send_t.message,0,strlen(send_t.message));
         strcpy(send_t.message, str);
         send(conn_fd, &send_t, sizeof(pack), 0);
@@ -62,7 +62,7 @@ void chat_group( pack pack_t, int i )
             strcpy(chatname, "");
             break;
         }
-        sprintf(str, "%s%s:\n%s", ctime(&timep), pack_t.send_name, send_message.message);
+        sprintf(str, "\033[0;34m%s%s:\n%s\033[0m", ctime(&timep), pack_t.send_name, send_message.message);
         memset(send_message.message,0,strlen(send_message.message));
         strcpy(send_message.message, str);
         send(conn_fd, &send_message, sizeof(pack), 0);

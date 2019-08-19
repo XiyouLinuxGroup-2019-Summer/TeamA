@@ -37,6 +37,16 @@ void *work( void *recv )
         break;
     case 10:
         sendfile(p);
+        break;
+    case 11:
+        showgroups(p);
+        break;
+    case 12:
+        kickperson(p);
+        break;
+    case 13:
+        quitgroup(p);
+        break;
     default:
         break;
     }
