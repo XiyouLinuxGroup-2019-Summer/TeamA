@@ -8,9 +8,11 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <pthread.h>
 #pragma comment(lib, "libmysql.lib") 
 
@@ -26,6 +28,7 @@ typedef struct {
     int recv_fd;
     char message[256];
     char file[300];
+    char file[1000];
 }pack;
 
 int conn_fd;
@@ -49,6 +52,8 @@ char *pas( char *s );
 void show_groups( pack pack_t );
 void showgroups();
 void add_friend(pack pack_t); 
+void sendfile();
+void send_file( pack pack_t );
 void deletefriend();
 void delete_friend(pack pack_t);
 int getch1(void);
@@ -58,13 +63,14 @@ void chatone();
 void show_friends( pack pack_t );
 void inviteperson();
 void add_group( pack pack_t );
-void chat_one( pack pack_t, int i );
+void chat_one( pack pack_t );
 void addgroup();
 void kickperson();
 void chatgroup();
 void sendfile();
 void send_file(pack pack_t);
 void chat_group(pack pack_t, int i);
+void chat_group(pack pack_t);
 void kick_person( pack pack_t );
 void quit_group( pack pack_t );
 void quitgroup();

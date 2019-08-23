@@ -37,6 +37,12 @@ void *work( void *recv )
         break;
     case 10:
         sendfile(p);
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        break;
+>>>>>>> df9f5e8c941a76df32cca99f112bc68a2c03cb9b
+=======
         break;
     case 11:
         showgroups(p);
@@ -47,6 +53,7 @@ void *work( void *recv )
     case 13:
         quitgroup(p);
         break;
+>>>>>>> 86bc901a8348b09c58785771745bc406fdd32fa4
     default:
         break;
     }
