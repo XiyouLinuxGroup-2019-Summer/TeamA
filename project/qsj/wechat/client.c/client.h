@@ -25,7 +25,7 @@ typedef struct {
     int send_fd;
     int recv_fd;
     char message[256];
-    char file[30000];
+    char file[300];
 }pack;
 
 int conn_fd;

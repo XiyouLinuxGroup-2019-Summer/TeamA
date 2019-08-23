@@ -17,7 +17,7 @@ void sendfile()
      sum = read(fd, send_t.file, sizeof(send_t.file));
      send_t.ans = sum;
      while ( sum > 0 ) {
-         if (send(conn_fd, &send_t, sizeof(pack), 0) < 0 )
+         if (send(conn_fd, &send_t, sizeof(pack), MSG_WAITALL) < 0 )
              my_err("send", __LINE__);
          bzero(send_t.file, sizeof(send_t.file)) ;
          sum = read(fd, send_t.file, sizeof(send_t.file));
