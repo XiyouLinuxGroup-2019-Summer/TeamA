@@ -65,10 +65,13 @@ int main()
                 recv_t.send_fd = events[i].data.fd; 
                 p = (pack*)malloc(sizeof(pack));
                 memcpy(p, &recv_t, sizeof(pack));
-                if ( pthread_create(&thid, NULL, work, (void *)p) != 0 ) {
-                    my_err("pthread_create", __LINE__);
-                    exit(1);
-                }
+                work((void *)p);
+
+                /* if ( pthread_create(&thid, NULL, work, (void *)p) != 0 ) { */
+                /*     my_err("pthread_create", __LINE__); */
+                /*     exit(1); */
+                /* } */
+
             }
         }
 
